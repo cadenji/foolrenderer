@@ -1,0 +1,12 @@
+/build/
+
+# macOS system files
+.DS_Store
+._*
+
+# Windows system files
+[Dd]esktop.ini
+Thumbs.db
+
+# IDE and editor generated files
+.vscode/
