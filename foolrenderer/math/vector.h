@@ -25,6 +25,8 @@
 
 #include <math.h>
 
+#include "math/math_utility.h"
+
 /// A vector in 2D space composed of components (x, y) with float value.
 struct vector2 {
     float x, y;
@@ -151,8 +153,20 @@ inline float vector2_magnitude_squared(struct vector2 v) {
     return vector2_dot(v, v);
 }
 
+/// Get a normalized copy of the 2D vector.
+/// Return a zero vector if the vector is too small to be normalized.
+///
+/// \param v The vector to be normalized.
+/// \return A normalized copy if the vector is not too small, zero vector
+///         otherwise.
 inline struct vector2 vector2_normalize(struct vector2 v) {
-    return vector2_divide(v, vector2_magnitude(v));
+    float square_magnitude = vector2_magnitude_squared(v);
+    if (square_magnitude == 1.0f) {
+        return v;
+    } else if (square_magnitude < SMALL_FLOAT) {
+        return VECTOR2_ZERO;
+    }
+    return vector2_divide(v, sqrtf(square_magnitude));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -215,8 +229,20 @@ inline float vector3_magnitude_squared(struct vector3 v) {
     return vector3_dot(v, v);
 }
 
+/// Get a normalized copy of the 3D vector.
+/// Return a zero vector if the vector is too small to be normalized.
+///
+/// \param v The vector to be normalized.
+/// \return A normalized copy if the vector is not too small, zero vector
+///         otherwise.
 inline struct vector3 vector3_normalize(struct vector3 v) {
-    return vector3_divide(v, vector3_magnitude(v));
+    float square_magnitude = vector3_magnitude_squared(v);
+    if (square_magnitude == 1.0f) {
+        return v;
+    } else if (square_magnitude < SMALL_FLOAT) {
+        return VECTOR3_ZERO;
+    }
+    return vector3_divide(v, sqrtf(square_magnitude));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
