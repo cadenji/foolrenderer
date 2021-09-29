@@ -22,52 +22,52 @@
 
 #include "math/vector.h"
 
-extern struct vector2 vector3_to_2(struct vector3 v);
+extern vector2 vector3_to_2(vector3 v);
 
-extern struct vector3 vector2_to_3(struct vector2 v, float z);
+extern vector3 vector2_to_3(vector2 v, float z);
 
-extern struct vector3 vecotr4_to_3(struct vector4 v);
+extern vector3 vecotr4_to_3(vector4 v);
 
-extern struct vector4 vector3_to_4(struct vector3 v, float w);
+extern vector4 vector3_to_4(vector3 v, float w);
 
-extern struct vector2 vector2_add(struct vector2 v1, struct vector2 v2);
+extern vector2 vector2_add(vector2 v1, vector2 v2);
 
-extern struct vector2 vector2_subtract(struct vector2 v1, struct vector2 v2);
+extern vector2 vector2_subtract(vector2 v1, vector2 v2);
 
-extern struct vector2 vector2_multiply(struct vector2 v, float scalar);
+extern vector2 vector2_multiply(vector2 v, float scalar);
 
-extern struct vector2 vector2_divide(struct vector2 v, float scalar);
+extern vector2 vector2_divide(vector2 v, float scalar);
 
-extern float vector2_dot(struct vector2 v1, struct vector2 v2);
+extern float vector2_dot(vector2 v1, vector2 v2);
 
-extern float vector2_magnitude(struct vector2 v);
+extern float vector2_magnitude(vector2 v);
 
-extern float vector2_magnitude_squared(struct vector2 v);
+extern float vector2_magnitude_squared(vector2 v);
 
-extern struct vector2 vector2_normalize(struct vector2 v);
+extern vector2 vector2_normalize(vector2 v);
 
-extern struct vector3 vector3_add(struct vector3 v1, struct vector3 v2);
+extern vector3 vector3_add(vector3 v1, vector3 v2);
 
-extern struct vector3 vector3_subtract(struct vector3 v1, struct vector3 v2);
+extern vector3 vector3_subtract(vector3 v1, vector3 v2);
 
-extern struct vector3 vector3_multiply(struct vector3 v, float scalar);
+extern vector3 vector3_multiply(vector3 v, float scalar);
 
-extern struct vector3 vector3_divide(struct vector3 v, float scalar);
+extern vector3 vector3_divide(vector3 v, float scalar);
 
-extern float vector3_dot(struct vector3 v1, struct vector3 v2);
+extern float vector3_dot(vector3 v1, vector3 v2);
 
-extern struct vector3 vector3_cross(struct vector3 v1, struct vector3 v2);
+extern vector3 vector3_cross(vector3 v1, vector3 v2);
 
-extern float vector3_magnitude(struct vector3 v);
+extern float vector3_magnitude(vector3 v);
 
-extern float vector3_magnitude_squared(struct vector3 v);
+extern float vector3_magnitude_squared(vector3 v);
 
-extern struct vector3 vector3_normalize(struct vector3 v);
+extern vector3 vector3_normalize(vector3 v);
 
-extern struct vector4 vector4_add(struct vector4 v1, struct vector4 v2);
+extern vector4 vector4_add(vector4 v1, vector4 v2);
 
-extern struct vector4 vector4_subtract(struct vector4 v1, struct vector4 v2);
+extern vector4 vector4_subtract(vector4 v1, vector4 v2);
 
-extern struct vector4 vector4_multiply(struct vector4 v, float scalar);
+extern vector4 vector4_multiply(vector4 v, float scalar);
 
-extern struct vector4 vector4_divide(struct vector4 v, float scalar);
+extern vector4 vector4_divide(vector4 v, float scalar);
