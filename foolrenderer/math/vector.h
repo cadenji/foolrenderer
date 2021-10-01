@@ -173,7 +173,7 @@ inline vector2 vector2_normalize(vector2 v) {
     float square_magnitude = vector2_magnitude_squared(v);
     if (square_magnitude == 1.0f) {
         return v;
-    } else if (square_magnitude < SMALL_FLOAT) {
+    } else if (square_magnitude < SMALL_ABSOLUTE_FLOAT) {
         return VECTOR2_ZERO;
     }
     return vector2_divide(v, sqrtf(square_magnitude));
@@ -245,7 +245,7 @@ inline vector3 vector3_normalize(vector3 v) {
     float square_magnitude = vector3_magnitude_squared(v);
     if (square_magnitude == 1.0f) {
         return v;
-    } else if (square_magnitude < SMALL_FLOAT) {
+    } else if (square_magnitude < SMALL_ABSOLUTE_FLOAT) {
         return VECTOR3_ZERO;
     }
     return vector3_divide(v, sqrtf(square_magnitude));
