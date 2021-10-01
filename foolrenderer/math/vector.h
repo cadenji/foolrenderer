@@ -171,7 +171,7 @@ inline float vector2_magnitude_squared(vector2 v) { return vector2_dot(v, v); }
 ///         otherwise.
 inline vector2 vector2_normalize(vector2 v) {
     float square_magnitude = vector2_magnitude_squared(v);
-    if (square_magnitude == 1.0f) {
+    if (fabsf(square_magnitude - 1.0f) < SMALL_ABSOLUTE_FLOAT) {
         return v;
     } else if (square_magnitude < SMALL_ABSOLUTE_FLOAT) {
         return VECTOR2_ZERO;
@@ -243,7 +243,7 @@ inline float vector3_magnitude_squared(vector3 v) { return vector3_dot(v, v); }
 ///         otherwise.
 inline vector3 vector3_normalize(vector3 v) {
     float square_magnitude = vector3_magnitude_squared(v);
-    if (square_magnitude == 1.0f) {
+    if (fabsf(square_magnitude - 1.0f) < SMALL_ABSOLUTE_FLOAT) {
         return v;
     } else if (square_magnitude < SMALL_ABSOLUTE_FLOAT) {
         return VECTOR3_ZERO;
