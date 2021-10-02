@@ -40,3 +40,5 @@ extern vector4 matrix4x4_multiply_vector4(matrix4x4 m, vector4 v);
 extern matrix4x4 matrix4x4_multiply(matrix4x4 lift, matrix4x4 right);
 
 extern matrix4x4 matrix4x4_transpose(matrix4x4 m);
+
+extern matrix4x4 matrix4x4_inverse(matrix4x4 m);
