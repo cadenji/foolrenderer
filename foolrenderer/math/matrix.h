@@ -35,14 +35,14 @@ typedef struct matrix4x4 {
     float elements[4][4];
 } matrix4x4;
 
-/// Constant identity 4x4 matrix.
+/// Constant for 4x4 identity matrix.
 #define MATRIX4X4_IDENTITY                        \
     ((const matrix4x4){{{1.0f, 0.0f, 0.0f, 0.0f}, \
                         {0.0f, 1.0f, 0.0f, 0.0f}, \
                         {0.0f, 0.0f, 1.0f, 0.0f}, \
                         {0.0f, 0.0f, 0.0f, 1.0f}}})
 
-/// Constant zero 4x4 matrix with all elements set to zero.
+/// Constant for 4x4 zero matrix with all elements set to zero.
 #define MATRIX4X4_ZERO                            \
     ((const matrix4x4){{{0.0f, 0.0f, 0.0f, 0.0f}, \
                         {0.0f, 0.0f, 0.0f, 0.0f}, \
@@ -160,7 +160,7 @@ inline matrix4x4 matrix4x4_inverse(matrix4x4 m) {
                         a31 * adj.elements[0][2] + a41 * adj.elements[0][3];
 
     if (fabsf(determinant) < SMALL_ABSOLUTE_FLOAT) {
-        // Roughly think the determinant is zero,
+        // Roughly thinks the determinant is zero,
         // so the matrix is not invertible.
         return MATRIX4X4_ZERO;
     }
