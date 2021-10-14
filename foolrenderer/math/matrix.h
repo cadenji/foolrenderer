@@ -28,30 +28,39 @@
 #include "math/math_utility.h"
 #include "math/vector.h"
 
-/// 4x4 matrix of floating point values.
+///
+/// \brief 4x4 matrix of floating point values.
+///
 /// Matrices are row major, elements are accessed with
 /// matrix.elements[row_index][column_index].
+///
 typedef struct matrix4x4 {
     float elements[4][4];
 } matrix4x4;
 
-/// Constant for 4x4 identity matrix.
+///
+/// \brief 4x4 identity matrix constant.
+///
 #define MATRIX4X4_IDENTITY                        \
     ((const matrix4x4){{{1.0f, 0.0f, 0.0f, 0.0f}, \
                         {0.0f, 1.0f, 0.0f, 0.0f}, \
                         {0.0f, 0.0f, 1.0f, 0.0f}, \
                         {0.0f, 0.0f, 0.0f, 1.0f}}})
 
-/// Constant for 4x4 zero matrix with all elements set to zero.
+///
+/// \brief 4x4 zero matrix constant, all elements are set to zero.
+///
 #define MATRIX4X4_ZERO                            \
     ((const matrix4x4){{{0.0f, 0.0f, 0.0f, 0.0f}, \
                         {0.0f, 0.0f, 0.0f, 0.0f}, \
                         {0.0f, 0.0f, 0.0f, 0.0f}, \
                         {0.0f, 0.0f, 0.0f, 0.0f}}})
 
-/// Converts the 4x4 matrix to string and writes the result to stdout.
+///
+/// \brief Converts the 4x4 matrix to string and writes the result to stdout.
 ///
 /// \param m The matrix to be printed.
+///
 void matrix4x4_print(matrix4x4 m);
 
 inline matrix4x4 matrix4x4_multiply_scalar(matrix4x4 m, float scalar) {
@@ -97,8 +106,9 @@ inline matrix4x4 matrix4x4_transpose(matrix4x4 m) {
     return result;
 }
 
-/// If the matrix is invertible, gets the inverse of the matrix. Returns a zero
-/// matrix otherwise.
+///
+/// \brief If the matrix is invertible, gets the inverse of the matrix.
+///        Returns a zero matrix otherwise.
 ///
 /// The invertible check simply compares the calculated determinant with
 /// SMALL_ABSOLUTE_FLOAT to roughly determine whether the matrix is invertible.
@@ -108,6 +118,7 @@ inline matrix4x4 matrix4x4_transpose(matrix4x4 m) {
 ///
 /// \param m The matrix to be calculated.
 /// \return The inverse of the matrix.
+///
 inline matrix4x4 matrix4x4_inverse(matrix4x4 m) {
     const float a11 = m.elements[0][0], a12 = m.elements[0][1],
                 a13 = m.elements[0][2], a14 = m.elements[0][3];

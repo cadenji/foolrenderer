@@ -27,9 +27,13 @@
 
 #include "math/math_utility.h"
 
-/// A vector in 2D space composed of components (x, y) with float value.
+///
+/// \brief A vector in 2D space composed of components (x, y) with floating
+///        point value.
+///
 /// The x, y components can be accessed using u, v respectively.
 /// Or access in an array through the member: elements.
+///
 typedef union vector2 {
     struct {
         float x, y;
@@ -40,9 +44,13 @@ typedef union vector2 {
     float elements[2];
 } vector2;
 
-/// A vector in 3D space composed of components (x, y, z) with float value.
+///
+/// \brief A vector in 3D space composed of components (x, y, z) with floating
+///        point value.
+///
 /// The x, y, z components can also be accessed access in an array through the
 /// member: elements.
+///
 typedef union vector3 {
     struct {
         float x, y, z;
@@ -50,9 +58,13 @@ typedef union vector3 {
     float elements[3];
 } vector3;
 
-/// A vector in 4D space composed of components (x, y, z, w) with float value.
+///
+/// \brief A vector in 4D space composed of components (x, y, z, w) with
+///        floating point value.
+///
 /// The x, y, z, w components can also be accessed access in an array through
 /// the member: elements.
+///
 typedef union vector4 {
     struct {
         float x, y, z, w;
@@ -60,22 +72,34 @@ typedef union vector4 {
     float elements[4];
 } vector4;
 
-/// Constant for zero vector (0,0).
+///
+/// \brief Zero vector (0,0) constant.
+///
 #define VECTOR2_ZERO ((const vector2){0.0f, 0.0f})
 
-/// Constant for one vector (1,1).
+///
+/// \brief One vector (1,1) constant.
+///
 #define VECTOR2_ONE ((const vector2){1.0f, 1.0f})
 
-/// Constant for zero vector (0,0,0).
+///
+/// \brief Zero vector (0,0,0) constant.
+///
 #define VECTOR3_ZERO ((const vector3){0.0f, 0.0f, 0.0f})
 
-/// Constant for one vector (1,1,1).
+///
+/// \brief One vector (1,1,1) constant.
+///
 #define VECTOR3_ONE ((const vector3){1.0f, 1.0f, 1.0f})
 
-/// Constant for zero vector (0,0,0,0).
+///
+/// \brief Zero vector (0,0,0,0) constant.
+///
 #define VECTOR4_ZERO ((const vector4){0.0f, 0.0f, 0.0f, 0.0f})
 
-// Constant for one vector (1,1,1,1).
+///
+/// \brief One vector (1,1,1,1) constant.
+///
 #define VECTOR4_ONE ((const vector4){1.0f, 1.0f, 1.0f, 1.0f})
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -84,33 +108,42 @@ typedef union vector4 {
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-/// Constructs a 2D vector from a 3D vector.
-/// The 3D vector provides x and y compnent values.
+///
+/// \brief Constructs a 2D vector from a 3D vector. The 3D vector provides
+///        x and y component values.
 ///
 /// \param v Vector to copy from.
 /// \return The constructed 2D vector.
+///
 inline vector2 vector3_to_2(vector3 v) { return (vector2){v.x, v.y}; }
 
-/// Constructs a 3D vector from a 2D vector and z value.
+///
+/// \brief Constructs a 3D vector from a 2D vector and z value.
 ///
 /// \param v The vector provides x and y component values.
 /// \param z The z component value.
 /// \return The constructed 3D vector.
+///
 inline vector3 vector2_to_3(vector2 v, float z) {
     return (vector3){v.x, v.y, z};
 }
 
-/// Constructs a 3D vector from a 4D vector.
 ///
-/// \param v The vector provides x, y and z component values.
+/// \brief Constructs a 3D vector from a 4D vector. The 4D vector provides
+///        x, y and z component values.
+///
+/// \param v Vector to copy from.
 /// \return The constructed 3D vector.
+///
 inline vector3 vecotr4_to_3(vector4 v) { return (vector3){v.x, v.y, v.z}; }
 
-/// Constructs a 4D vector from a 3D vector and w value.
+///
+/// \brief Constructs a 4D vector from a 3D vector and w value.
 ///
 /// \param v The vector provides x, y and z component values.
 /// \param w The w component value.
 /// \return The constructed 4D vector.
+///
 inline vector4 vector3_to_4(vector3 v, float w) {
     return (vector4){v.x, v.y, v.z, w};
 }
@@ -129,20 +162,26 @@ inline vector2 vector2_subtract(vector2 v1, vector2 v2) {
     return (vector2){v1.x - v2.x, v1.y - v2.y};
 }
 
-/// Gets the result of multiplying each component of the 2D vector by a value.
+///
+/// \brief Gets the result of multiplying each component of the 2D vector by a
+///        value.
 ///
 /// \param v The multiplied vector.
 /// \param scalar What to multiply each component by.
 /// \return The result of multiplication.
+///
 inline vector2 vector2_multiply(vector2 v, float scalar) {
     return (vector2){v.x * scalar, v.y * scalar};
 }
 
-/// Gets the result of dividing each component of the 2D vector by a value.
+///
+/// \brief Gets the result of dividing each component of the 2D vector by a
+///        value.
 ///
 /// \param v The divided vector.
 /// \param scalar What to divide each component by.
 /// \return The result of division.
+///
 inline vector2 vector2_divide(vector2 v, float scalar) {
     return (vector2){v.x / scalar, v.y / scalar};
 }
@@ -151,24 +190,34 @@ inline float vector2_dot(vector2 v1, vector2 v2) {
     return v1.x * v2.x + v1.y * v2.y;
 }
 
-/// Gets the lenght of a 2D vector.
+///
+/// \brief Gets the lenght of a 2D vector.
 ///
 /// If only need to compare lenght of some vectors, using
-/// vector2_magnitude_squared(vector2) instead. Because this function
+/// vector2_magnitude_squared() instead. Because this function
 /// doesn't perform square root, the execution speed is faster.
+///
+/// \param v The vector to be calculated.
+/// \return The length of the vector.
+///
 inline float vector2_magnitude(vector2 v) { return sqrtf(vector2_dot(v, v)); }
 
-/// Gets the squared lenght of a 2D vector.
 ///
-/// See also vector2_magnitude(vector2).
+/// \brief Gets the squared lenght of a 2D vector.
+///
+/// \param v The vector to be calculated.
+/// \return The squared length of the vector.
+///
 inline float vector2_magnitude_squared(vector2 v) { return vector2_dot(v, v); }
 
-/// Gets a normalized copy of the 2D vector.
-/// Returns a zero vector if the vector is too small to be normalized.
+///
+/// \brief Gets a normalized copy of the 2D vector. Returns a zero vector if the
+///        vector is too small to be normalized.
 ///
 /// \param v The vector to be normalized.
-/// \return A normalized copy if the vector is not too small, zero vector
-///         otherwise.
+/// \return Returns a normalized copy if the vector is not too small, otherwise
+///         returns zero vector.
+///
 inline vector2 vector2_normalize(vector2 v) {
     float square_magnitude = vector2_magnitude_squared(v);
     if (fabsf(square_magnitude - 1.0f) < SMALL_ABSOLUTE_FLOAT) {
@@ -193,20 +242,26 @@ inline vector3 vector3_subtract(vector3 v1, vector3 v2) {
     return (vector3){v1.x - v2.x, v1.y - v2.y, v1.z - v2.z};
 }
 
-/// Gets the result of multiplying each component of the 3D vector by a value.
+///
+/// \brief Gets the result of multiplying each component of the 3D vector by a
+///        value.
 ///
 /// \param v The multiplied vector.
 /// \param scalar What to multiply each component by.
 /// \return The result of multiplication.
+///
 inline vector3 vector3_multiply(vector3 v, float scalar) {
     return (vector3){v.x * scalar, v.y * scalar, v.z * scalar};
 }
 
-/// Gets the result of dividing each component of the 3D vector by a value.
+///
+/// \brief Gets the result of dividing each component of the 3D vector by a
+///        value.
 ///
 /// \param v The divided vector.
 /// \param scalar What to divide each component by.
 /// \return The result of division.
+///
 inline vector3 vector3_divide(vector3 v, float scalar) {
     return (vector3){v.x / scalar, v.y / scalar, v.z / scalar};
 }
@@ -223,24 +278,34 @@ inline vector3 vector3_cross(vector3 v1, vector3 v2) {
     return v_out;
 }
 
-/// Gets the lenght of a 3D vector.
+///
+/// \brief Gets the lenght of a 3D vector.
 ///
 /// If only need to compare lenght of some vectors, using
-/// vector3_magnitude_squared(vector3) instead. Because this function
+/// vector3_magnitude_squared() instead. Because this function
 /// doesn't perform square root, the execution speed is faster.
+///
+/// \param v The vector to be calculated.
+/// \return The length of the vector.
+///
 inline float vector3_magnitude(vector3 v) { return sqrtf(vector3_dot(v, v)); }
 
-/// Gets the squared lenght of a 3D vector.
 ///
-/// See also vector3_magnitude(vector3).
+/// \brief Gets the squared lenght of a 3D vector.
+///
+/// \param v The vector to be calculated.
+/// \return The squared length of the vector.
+///
 inline float vector3_magnitude_squared(vector3 v) { return vector3_dot(v, v); }
 
-/// Gets a normalized copy of the 3D vector.
-/// Returns a zero vector if the vector is too small to be normalized.
+///
+/// \brief Gets a normalized copy of the 3D vector. Returns a zero vector if the
+///        vector is too small to be normalized.
 ///
 /// \param v The vector to be normalized.
-/// \return A normalized copy if the vector is not too small, zero vector
-///         otherwise.
+/// \return Returns a normalized copy if the vector is not too small, otherwise
+///         returns zero vector.
+///
 inline vector3 vector3_normalize(vector3 v) {
     float square_magnitude = vector3_magnitude_squared(v);
     if (fabsf(square_magnitude - 1.0f) < SMALL_ABSOLUTE_FLOAT) {
@@ -265,20 +330,26 @@ inline vector4 vector4_subtract(vector4 v1, vector4 v2) {
     return (vector4){v1.x - v2.x, v1.y - v2.y, v1.z - v2.z, v1.w - v2.w};
 }
 
-/// Gets the result of multiplying each component of the 4D vector by a value.
+///
+/// \brief Gets the result of multiplying each component of the 4D vector by a
+///        value.
 ///
 /// \param v The multiplied vector.
 /// \param scalar What to multiply each component by.
 /// \return The result of multiplication.
+///
 inline vector4 vector4_multiply(vector4 v, float scalar) {
     return (vector4){v.x * scalar, v.y * scalar, v.z * scalar, v.w * scalar};
 }
 
-/// Gets the result of dividing each component of the 4D vector by a value.
+///
+/// \brief Gets the result of dividing each component of the 4D vector by a
+///        value.
 ///
 /// \param v The divided vector.
 /// \param scalar What to divide each component by.
 /// \return The result of division.
+///
 inline vector4 vector4_divide(vector4 v, float scalar) {
     return (vector4){v.x / scalar, v.y / scalar, v.z / scalar, v.w / scalar};
 }
