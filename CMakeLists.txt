@@ -6,6 +6,7 @@ add_subdirectory(external/tgafunc)
 
 add_executable(${PROJECT_NAME}
     foolrenderer/main.c
+    foolrenderer/graphics.c
     foolrenderer/math/vector.c
     foolrenderer/math/matrix.c
 )

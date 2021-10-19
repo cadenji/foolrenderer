@@ -20,11 +20,28 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+#include <stdint.h>
 #include <stdio.h>
+#include <tgafunc.h>
+
+#include "graphics.h"
 
 #define IMAGE_WIDTH 512
 #define IMAGE_HEIGHT 512
 
 int main(int argc, char *argv[]) {
-    printf("hello foolrenderer\n");
+    uint8_t *data;
+    tga_info *info;
+    tga_create(&data, &info, IMAGE_WIDTH, IMAGE_HEIGHT, TGA_PIXEL_RGB24);
+
+    // Draw a red trangle.
+    vector3 v[3] = {{{0.5f, -0.5f, 1.0f}},
+                    {{-0.5f, 0.5f, 1.0f}},
+                    {{-0.5f, -0.5f, 1.0f}}};
+    set_viewport(0, 0, IMAGE_WIDTH, IMAGE_HEIGHT);
+    draw_triangle(v, data);
+    // Save as TGA format file.
+    tga_save_from_info(data, info, "output.tga");
+
+    return 0;
 }
