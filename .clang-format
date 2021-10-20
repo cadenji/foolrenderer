@@ -1,3 +1,4 @@
 BasedOnStyle: Google
 UseTab: Never
 IndentWidth: 4
+AllowAllArgumentsOnNextLine: false
