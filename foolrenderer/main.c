@@ -29,7 +29,7 @@
 #define IMAGE_WIDTH 512
 #define IMAGE_HEIGHT 512
 
-int main(int argc, char *argv[]) {
+int main(void) {
     uint8_t *data;
     tga_info *info;
     tga_create(&data, &info, IMAGE_WIDTH, IMAGE_HEIGHT, TGA_PIXEL_RGB24);

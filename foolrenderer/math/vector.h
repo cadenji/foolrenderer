@@ -75,32 +75,32 @@ typedef union vector4 {
 ///
 /// \brief Zero vector (0,0) constant.
 ///
-#define VECTOR2_ZERO ((const vector2){0.0f, 0.0f})
+#define VECTOR2_ZERO ((const vector2){{0.0f, 0.0f}})
 
 ///
 /// \brief One vector (1,1) constant.
 ///
-#define VECTOR2_ONE ((const vector2){1.0f, 1.0f})
+#define VECTOR2_ONE ((const vector2){{1.0f, 1.0f}})
 
 ///
 /// \brief Zero vector (0,0,0) constant.
 ///
-#define VECTOR3_ZERO ((const vector3){0.0f, 0.0f, 0.0f})
+#define VECTOR3_ZERO ((const vector3){{0.0f, 0.0f, 0.0f}})
 
 ///
 /// \brief One vector (1,1,1) constant.
 ///
-#define VECTOR3_ONE ((const vector3){1.0f, 1.0f, 1.0f})
+#define VECTOR3_ONE ((const vector3){{1.0f, 1.0f, 1.0f}})
 
 ///
 /// \brief Zero vector (0,0,0,0) constant.
 ///
-#define VECTOR4_ZERO ((const vector4){0.0f, 0.0f, 0.0f, 0.0f})
+#define VECTOR4_ZERO ((const vector4){{0.0f, 0.0f, 0.0f, 0.0f}})
 
 ///
 /// \brief One vector (1,1,1,1) constant.
 ///
-#define VECTOR4_ONE ((const vector4){1.0f, 1.0f, 1.0f, 1.0f})
+#define VECTOR4_ONE ((const vector4){{1.0f, 1.0f, 1.0f, 1.0f}})
 
 ////////////////////////////////////////////////////////////////////////////////
 //
@@ -115,7 +115,7 @@ typedef union vector4 {
 /// \param v Vector to copy from.
 /// \return The constructed 2D vector.
 ///
-inline vector2 vector3_to_2(vector3 v) { return (vector2){v.x, v.y}; }
+inline vector2 vector3_to_2(vector3 v) { return (vector2){{v.x, v.y}}; }
 
 ///
 /// \brief Constructs a 3D vector from a 2D vector and z value.
@@ -125,7 +125,7 @@ inline vector2 vector3_to_2(vector3 v) { return (vector2){v.x, v.y}; }
 /// \return The constructed 3D vector.
 ///
 inline vector3 vector2_to_3(vector2 v, float z) {
-    return (vector3){v.x, v.y, z};
+    return (vector3){{v.x, v.y, z}};
 }
 
 ///
@@ -135,7 +135,7 @@ inline vector3 vector2_to_3(vector2 v, float z) {
 /// \param v Vector to copy from.
 /// \return The constructed 3D vector.
 ///
-inline vector3 vecotr4_to_3(vector4 v) { return (vector3){v.x, v.y, v.z}; }
+inline vector3 vecotr4_to_3(vector4 v) { return (vector3){{v.x, v.y, v.z}}; }
 
 ///
 /// \brief Constructs a 4D vector from a 3D vector and w value.
@@ -145,7 +145,7 @@ inline vector3 vecotr4_to_3(vector4 v) { return (vector3){v.x, v.y, v.z}; }
 /// \return The constructed 4D vector.
 ///
 inline vector4 vector3_to_4(vector3 v, float w) {
-    return (vector4){v.x, v.y, v.z, w};
+    return (vector4){{v.x, v.y, v.z, w}};
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -155,11 +155,11 @@ inline vector4 vector3_to_4(vector3 v, float w) {
 ////////////////////////////////////////////////////////////////////////////////
 
 inline vector2 vector2_add(vector2 v1, vector2 v2) {
-    return (vector2){v1.x + v2.x, v1.y + v2.y};
+    return (vector2){{v1.x + v2.x, v1.y + v2.y}};
 }
 
 inline vector2 vector2_subtract(vector2 v1, vector2 v2) {
-    return (vector2){v1.x - v2.x, v1.y - v2.y};
+    return (vector2){{v1.x - v2.x, v1.y - v2.y}};
 }
 
 ///
@@ -171,7 +171,7 @@ inline vector2 vector2_subtract(vector2 v1, vector2 v2) {
 /// \return The result of multiplication.
 ///
 inline vector2 vector2_multiply(vector2 v, float scalar) {
-    return (vector2){v.x * scalar, v.y * scalar};
+    return (vector2){{v.x * scalar, v.y * scalar}};
 }
 
 ///
@@ -183,7 +183,7 @@ inline vector2 vector2_multiply(vector2 v, float scalar) {
 /// \return The result of division.
 ///
 inline vector2 vector2_divide(vector2 v, float scalar) {
-    return (vector2){v.x / scalar, v.y / scalar};
+    return (vector2){{v.x / scalar, v.y / scalar}};
 }
 
 inline float vector2_dot(vector2 v1, vector2 v2) {
@@ -235,11 +235,11 @@ inline vector2 vector2_normalize(vector2 v) {
 ////////////////////////////////////////////////////////////////////////////////
 
 inline vector3 vector3_add(vector3 v1, vector3 v2) {
-    return (vector3){v1.x + v2.x, v1.y + v2.y, v1.z + v2.z};
+    return (vector3){{v1.x + v2.x, v1.y + v2.y, v1.z + v2.z}};
 }
 
 inline vector3 vector3_subtract(vector3 v1, vector3 v2) {
-    return (vector3){v1.x - v2.x, v1.y - v2.y, v1.z - v2.z};
+    return (vector3){{v1.x - v2.x, v1.y - v2.y, v1.z - v2.z}};
 }
 
 ///
@@ -251,7 +251,7 @@ inline vector3 vector3_subtract(vector3 v1, vector3 v2) {
 /// \return The result of multiplication.
 ///
 inline vector3 vector3_multiply(vector3 v, float scalar) {
-    return (vector3){v.x * scalar, v.y * scalar, v.z * scalar};
+    return (vector3){{v.x * scalar, v.y * scalar, v.z * scalar}};
 }
 
 ///
@@ -263,7 +263,7 @@ inline vector3 vector3_multiply(vector3 v, float scalar) {
 /// \return The result of division.
 ///
 inline vector3 vector3_divide(vector3 v, float scalar) {
-    return (vector3){v.x / scalar, v.y / scalar, v.z / scalar};
+    return (vector3){{v.x / scalar, v.y / scalar, v.z / scalar}};
 }
 
 inline float vector3_dot(vector3 v1, vector3 v2) {
@@ -323,11 +323,11 @@ inline vector3 vector3_normalize(vector3 v) {
 ////////////////////////////////////////////////////////////////////////////////
 
 inline vector4 vector4_add(vector4 v1, vector4 v2) {
-    return (vector4){v1.x + v2.x, v1.y + v2.y, v1.z + v2.z, v1.w + v2.w};
+    return (vector4){{v1.x + v2.x, v1.y + v2.y, v1.z + v2.z, v1.w + v2.w}};
 }
 
 inline vector4 vector4_subtract(vector4 v1, vector4 v2) {
-    return (vector4){v1.x - v2.x, v1.y - v2.y, v1.z - v2.z, v1.w - v2.w};
+    return (vector4){{v1.x - v2.x, v1.y - v2.y, v1.z - v2.z, v1.w - v2.w}};
 }
 
 ///
@@ -339,7 +339,7 @@ inline vector4 vector4_subtract(vector4 v1, vector4 v2) {
 /// \return The result of multiplication.
 ///
 inline vector4 vector4_multiply(vector4 v, float scalar) {
-    return (vector4){v.x * scalar, v.y * scalar, v.z * scalar, v.w * scalar};
+    return (vector4){{v.x * scalar, v.y * scalar, v.z * scalar, v.w * scalar}};
 }
 
 ///
@@ -351,7 +351,7 @@ inline vector4 vector4_multiply(vector4 v, float scalar) {
 /// \return The result of division.
 ///
 inline vector4 vector4_divide(vector4 v, float scalar) {
-    return (vector4){v.x / scalar, v.y / scalar, v.z / scalar, v.w / scalar};
+    return (vector4){{v.x / scalar, v.y / scalar, v.z / scalar, v.w / scalar}};
 }
 
 #endif  // FOOLRENDERER_MATH_VECTOR_H_
