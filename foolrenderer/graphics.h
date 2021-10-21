@@ -44,8 +44,8 @@ void set_viewport(int left, int bottom, uint32_t width, uint32_t height);
 /// \brief Draws the triangle to the framebuffer.
 ///
 /// The vertices of the triangle in normalized device coordinates (NDC). And
-/// triangle with counterclockwise winding in window coordinates are taken to be
-/// front-facing.
+/// triangles defined with counterclockwise winding are treated as front-facing
+/// triangles. This function only draws front-facing triangles.
 ///
 /// The NDC uses a left-handed coordinate system, and point (-1, -1) is located
 /// at the the bottom-left corner (Y up).

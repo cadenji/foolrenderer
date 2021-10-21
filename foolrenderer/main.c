@@ -29,6 +29,18 @@
 #define IMAGE_WIDTH 512
 #define IMAGE_HEIGHT 512
 
+static inline void endian_inversion(uint8_t *bytes, size_t size) {
+    uint8_t buffer;
+    size_t left = 0, right = size - 1;
+    while (left < right) {
+        buffer = bytes[left];
+        bytes[left] = bytes[right];
+        bytes[right] = buffer;
+        ++left;
+        --right;
+    }
+}
+
 int main(void) {
     uint8_t *data;
     tga_info *info;
@@ -40,8 +52,18 @@ int main(void) {
                     {{-0.5f, -0.5f, 1.0f}}};
     set_viewport(0, 0, IMAGE_WIDTH, IMAGE_HEIGHT);
     draw_triangle(v, data);
-    // Save as TGA format file.
+
+    // Convert all pixels to little endian and save as TGA format file.
+    uint8_t *pixel;
+    for (int y = 0; y < IMAGE_WIDTH; y++) {
+        for (int x = 0; x < IMAGE_HEIGHT; x++) {
+            pixel = tga_get_pixel(data, info, x, y);
+            endian_inversion(pixel, 3);
+        }
+    }
     tga_save_from_info(data, info, "output.tga");
 
+    tga_free_data(data);
+    tga_free_info(info);
     return 0;
 }

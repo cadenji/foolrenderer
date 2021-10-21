@@ -27,6 +27,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "math/math_utility.h"
 #include "math/vector.h"
 
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))
@@ -42,13 +43,17 @@ static struct {
 // to window space.
 static inline vector3 viewport_transform(vector3 vertex) {
     vertex.x = (vertex.x + 1.0f) * 0.5f * viewport.width + viewport.left;
-    // +Y is up in NDC, but +Y is down in window space, so needs to flip the Y
-    // axis from up to down.
+    // +Y is up in NDC space, but +Y is down in window space, so needs to flip
+    // the Y axis from up to down.
     vertex.y = (-vertex.y + 1.0f) * 0.5f * viewport.height + viewport.bottom;
     vertex.z = (vertex.z + 1.0f) * 0.5f;
     return vertex;
 }
 
+// Computes the determinant of a 2x2 matrix composed of vectors (c-a) and (b-a).
+// The result can be interpreted as the signed area of a parallelogram with the
+// two vectors as sides. At the same time, the sign of the area can be used to
+// determine the left-right relationship between the two vectors.
 static inline float edge_function(vector2 a, vector2 b, vector2 c) {
     return (c.x - a.x) * (b.y - a.y) - (c.y - a.y) * (b.x - a.x);
 }
@@ -83,6 +88,17 @@ void draw_triangle(const vector3 vertices[], uint8_t *framebuffer) {
 
     // Compute the area of the triangle multiplied by 2.
     float area = edge_function(v0, v1, v2);
+    if (area < 0) {
+        // Since the y-axis is flipped down when the vertex is transformed into
+        // screen space. So the triangle on the front becomes a clockwise
+        // winding and the area should be positive.
+        return;
+    }
+    if (area < SMALL_ABSOLUTE_FLOAT) {
+        // If the triangle area is too small, it is considered a degenerate
+        // triangle. Won't draw.
+        return;
+    }
 
     // Traverse find the pixels covered by the triangle. If found, compute the
     // barycentric coordinates of the point in the triangle.
@@ -105,7 +121,7 @@ void draw_triangle(const vector3 vertices[], uint8_t *framebuffer) {
                 b1 /= area;
                 b2 /= area;
                 uint8_t *pixel = get_pixel(framebuffer, x, y);
-                pixel[2] = 0xFF;
+                pixel[0] = 0xFF; // Set the red channel to 255.
             }
         }
     }
