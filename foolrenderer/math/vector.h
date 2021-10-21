@@ -31,8 +31,8 @@
 /// \brief A vector in 2D space composed of components (x, y) with floating
 ///        point value.
 ///
-/// The x, y components can be accessed using u, v respectively.
-/// Or access in an array through the member: elements.
+/// The x, y components can be accessed using u, v respectively. Or access in an
+/// array through the member: elements.
 ///
 typedef union vector2 {
     struct {
@@ -48,12 +48,15 @@ typedef union vector2 {
 /// \brief A vector in 3D space composed of components (x, y, z) with floating
 ///        point value.
 ///
-/// The x, y, z components can also be accessed access in an array through the
-/// member: elements.
+/// The x, y, z components can be accessed using r, g, b respectively. Or access
+/// in an array through the member: elements.
 ///
 typedef union vector3 {
     struct {
         float x, y, z;
+    };
+    struct {
+        float r, g, b;
     };
     float elements[3];
 } vector3;
@@ -62,12 +65,15 @@ typedef union vector3 {
 /// \brief A vector in 4D space composed of components (x, y, z, w) with
 ///        floating point value.
 ///
-/// The x, y, z, w components can also be accessed access in an array through
-/// the member: elements.
+/// The x, y, z, w components can be accessed using r, g, b, a respectively. Or
+/// access in an array through the member: elements.
 ///
 typedef union vector4 {
     struct {
         float x, y, z, w;
+    };
+    struct {
+        float r, g, b, a;
     };
     float elements[4];
 } vector4;
