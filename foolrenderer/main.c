@@ -47,11 +47,14 @@ int main(void) {
     tga_create(&data, &info, IMAGE_WIDTH, IMAGE_HEIGHT, TGA_PIXEL_RGB24);
 
     // Draw a red trangle.
-    vector3 v[3] = {{{0.5f, -0.5f, 1.0f}},
-                    {{-0.5f, 0.5f, 1.0f}},
-                    {{-0.5f, -0.5f, 1.0f}}};
+    vector3 vertices[3] = {{{0.5f, -0.5f, 1.0f}},
+                           {{-0.5f, 0.5f, 1.0f}},
+                           {{-0.5f, -0.5f, 1.0f}}};
+    vector3 colors[3] = {{{1.0f, 0.0f, 0.0f}},
+                         {{0.0f, 1.0f, 0.0f}},
+                         {{0.0f, 0.0f, 1.0f}}};
     set_viewport(0, 0, IMAGE_WIDTH, IMAGE_HEIGHT);
-    draw_triangle(v, data);
+    draw_triangle(vertices, colors, data);
 
     // Convert all pixels to little endian and save as TGA format file.
     uint8_t *pixel;

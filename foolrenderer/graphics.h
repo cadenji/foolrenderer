@@ -53,8 +53,10 @@ void set_viewport(int left, int bottom, uint32_t width, uint32_t height);
 /// The origin (0, 0) of the framebuffer is in the upper-left corner (Y down).
 ///
 /// \param vertices The vertices of the triangle in NDC space.
+/// \param colors The vertex colors of the triangle.
 /// \param framebuffer The framebuffer which the triangle is drawn.
 ///
-void draw_triangle(const vector3 vertices[], uint8_t *framebuffer);
+void draw_triangle(const vector3 vertices[], const vector3 colors[],
+                   uint8_t *framebuffer);
 
 #endif  // FOOLRENDERER_GRAPHICS_H_

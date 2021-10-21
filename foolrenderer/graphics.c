@@ -69,7 +69,8 @@ void set_viewport(int left, int bottom, uint32_t width, uint32_t height) {
     viewport.height = height;
 }
 
-void draw_triangle(const vector3 vertices[], uint8_t *framebuffer) {
+void draw_triangle(const vector3 vertices[], const vector3 colors[],
+                   uint8_t *framebuffer) {
     vector2 bbmin = {{FLT_MAX, FLT_MAX}}, bbmax = {{FLT_MIN, FLT_MIN}};
     vector3 transformed_vertices[3];
     for (int i = 0; i < 3; i++) {
@@ -105,6 +106,8 @@ void draw_triangle(const vector3 vertices[], uint8_t *framebuffer) {
     vector2 p;
     // The barycentric coordinates of p.
     float b0, b1, b2;
+    // The color of p.
+    vector3 color_p;
     // No need to traverses pixels outside the window.
     uint32_t x_min = MAX(0, MIN(viewport.width - 1, floorf(bbmin.x)));
     uint32_t y_min = MAX(0, MIN(viewport.height - 1, floorf(bbmin.y)));
@@ -120,8 +123,13 @@ void draw_triangle(const vector3 vertices[], uint8_t *framebuffer) {
                 b0 /= area;
                 b1 /= area;
                 b2 /= area;
+                color_p.r = b0 * colors[0].r + b1 * colors[1].r + b2 * colors[2].r;
+                color_p.g = b0 * colors[0].g + b1 * colors[1].g + b2 * colors[2].g;
+                color_p.b = b0 * colors[0].b + b1 * colors[1].b + b2 * colors[2].b;
                 uint8_t *pixel = get_pixel(framebuffer, x, y);
-                pixel[0] = 0xFF; // Set the red channel to 255.
+                pixel[0] = color_p.r * 0xFF;
+                pixel[1] = color_p.g * 0xFF;
+                pixel[2] = color_p.b * 0xFF;
             }
         }
     }
