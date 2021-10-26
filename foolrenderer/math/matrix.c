@@ -42,3 +42,13 @@ extern matrix4x4 matrix4x4_multiply(matrix4x4 lift, matrix4x4 right);
 extern matrix4x4 matrix4x4_transpose(matrix4x4 m);
 
 extern matrix4x4 matrix4x4_inverse(matrix4x4 m);
+
+extern matrix4x4 matrix4x4_scale(vector3 scaling);
+
+extern matrix4x4 matrix4x4_translate(vector3 translation);
+
+extern matrix4x4 matrix4x4_rotate_x(float angle);
+
+extern matrix4x4 matrix4x4_rotate_y(float angle);
+
+extern matrix4x4 matrix4x4_rotate_z(float angle);

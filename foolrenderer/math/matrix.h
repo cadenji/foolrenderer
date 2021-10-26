@@ -178,4 +178,83 @@ inline matrix4x4 matrix4x4_inverse(matrix4x4 m) {
     return matrix4x4_multiply_scalar(adj, 1.0f / determinant);
 }
 
+///
+/// \brief Constructs a scaling matrix.
+///
+/// \param scaling Specifys the scaling factor on the x, y and z axis.
+/// \return The scaling matrix.
+///
+inline matrix4x4 matrix4x4_scale(vector3 scaling) {
+    matrix4x4 result = MATRIX4X4_IDENTITY;
+    result.elements[0][0] = scaling.x;
+    result.elements[1][1] = scaling.y;
+    result.elements[2][2] = scaling.z;
+    return result;
+}
+
+///
+/// \brief Constructs a translation matrix.
+///
+/// \param translation Specifys the translation on the x, y and z axis.
+/// \return The translation matrix.
+///
+inline matrix4x4 matrix4x4_translate(vector3 translation) {
+    matrix4x4 result = MATRIX4X4_IDENTITY;
+    result.elements[0][3] = translation.x;
+    result.elements[1][3] = translation.y;
+    result.elements[2][3] = translation.z;
+    return result;
+}
+
+///
+/// \brief Constructs a rotation matrix along the x axis.
+///
+/// \param angle The angle of rotation along the x axis, in radians.
+/// \return The rotation matrix.
+///
+inline matrix4x4 matrix4x4_rotate_x(float angle) {
+    float cos = cosf(angle);
+    float sin = sinf(angle);
+    matrix4x4 result = MATRIX4X4_IDENTITY;
+    result.elements[1][1] = cos;
+    result.elements[1][2] = -sin;
+    result.elements[2][1] = sin;
+    result.elements[2][2] = cos;
+    return result;
+}
+
+///
+/// \brief Constructs a rotation matrix along the y axis.
+///
+/// \param angle The angle of rotation along the y axis, in radians.
+/// \return The rotation matrix.
+///
+inline matrix4x4 matrix4x4_rotate_y(float angle) {
+    float cos = cosf(angle);
+    float sin = sinf(angle);
+    matrix4x4 result = MATRIX4X4_IDENTITY;
+    result.elements[0][0] = cos;
+    result.elements[0][2] = sin;
+    result.elements[2][0] = -sin;
+    result.elements[2][2] = cos;
+    return result;
+}
+
+///
+/// \brief Constructs a rotation matrix along the z axis.
+///
+/// \param angle The angle of rotation along the z axis, in radians.
+/// \return The rotation matrix.
+///
+inline matrix4x4 matrix4x4_rotate_z(float angle) {
+    float cos = cosf(angle);
+    float sin = sinf(angle);
+    matrix4x4 result = MATRIX4X4_IDENTITY;
+    result.elements[0][0] = cos;
+    result.elements[0][1] = -sin;
+    result.elements[1][0] = sin;
+    result.elements[1][1] = cos;
+    return result;
+}
+
 #endif  // FOOLRENDERER_MATH_MATRIX_H_
