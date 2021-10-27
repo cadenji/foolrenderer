@@ -71,6 +71,8 @@ void set_viewport(int left, int bottom, uint32_t width, uint32_t height) {
 
 void draw_triangle(const vector3 vertices[], const vector3 colors[],
                    uint8_t *framebuffer) {
+    // Using edge functions to raster polygons, refer to:
+    // https://www.scratchapixel.com/lessons/3d-basic-rendering/rasterization-practical-implementation/rasterization-stage
     vector2 bbmin = {{FLT_MAX, FLT_MAX}}, bbmax = {{FLT_MIN, FLT_MIN}};
     vector3 transformed_vertices[3];
     for (int i = 0; i < 3; i++) {

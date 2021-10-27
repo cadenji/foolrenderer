@@ -213,6 +213,8 @@ inline matrix4x4 matrix4x4_translate(vector3 translation) {
 /// \return The rotation matrix.
 ///
 inline matrix4x4 matrix4x4_rotate_x(float angle) {
+    // Construction a rotation transformation in 3D, refer to:
+    // https://www.youtube.com/watch?v=gkyuLPzfDV0
     float cos = cosf(angle);
     float sin = sinf(angle);
     matrix4x4 result = MATRIX4X4_IDENTITY;
