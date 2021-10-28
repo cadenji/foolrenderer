@@ -213,15 +213,15 @@ inline matrix4x4 matrix4x4_translate(vector3 translation) {
 /// \return The rotation matrix.
 ///
 inline matrix4x4 matrix4x4_rotate_x(float angle) {
-    // Construction a rotation transformation in 3D, refer to:
+    // For construction a rotation transformation in 3D, refer to:
     // https://www.youtube.com/watch?v=gkyuLPzfDV0
-    float cos = cosf(angle);
-    float sin = sinf(angle);
+    float c = cosf(angle);
+    float s = sinf(angle);
     matrix4x4 result = MATRIX4X4_IDENTITY;
-    result.elements[1][1] = cos;
-    result.elements[1][2] = -sin;
-    result.elements[2][1] = sin;
-    result.elements[2][2] = cos;
+    result.elements[1][1] = c;
+    result.elements[1][2] = -s;
+    result.elements[2][1] = s;
+    result.elements[2][2] = c;
     return result;
 }
 
@@ -232,13 +232,13 @@ inline matrix4x4 matrix4x4_rotate_x(float angle) {
 /// \return The rotation matrix.
 ///
 inline matrix4x4 matrix4x4_rotate_y(float angle) {
-    float cos = cosf(angle);
-    float sin = sinf(angle);
+    float c = cosf(angle);
+    float s = sinf(angle);
     matrix4x4 result = MATRIX4X4_IDENTITY;
-    result.elements[0][0] = cos;
-    result.elements[0][2] = sin;
-    result.elements[2][0] = -sin;
-    result.elements[2][2] = cos;
+    result.elements[0][0] = c;
+    result.elements[0][2] = s;
+    result.elements[2][0] = -s;
+    result.elements[2][2] = c;
     return result;
 }
 
@@ -249,13 +249,60 @@ inline matrix4x4 matrix4x4_rotate_y(float angle) {
 /// \return The rotation matrix.
 ///
 inline matrix4x4 matrix4x4_rotate_z(float angle) {
-    float cos = cosf(angle);
-    float sin = sinf(angle);
+    float c = cosf(angle);
+    float s = sinf(angle);
     matrix4x4 result = MATRIX4X4_IDENTITY;
-    result.elements[0][0] = cos;
-    result.elements[0][1] = -sin;
-    result.elements[1][0] = sin;
-    result.elements[1][1] = cos;
+    result.elements[0][0] = c;
+    result.elements[0][1] = -s;
+    result.elements[1][0] = s;
+    result.elements[1][1] = c;
+    return result;
+}
+
+///
+/// \brief Constructs a rotation matrix about an arbitrary vector.
+///
+/// \param angle The angle of rotation, in radians.
+/// \param about The vector.
+/// \return The rotation matrix.
+///
+inline matrix4x4 matrix4x4_rotate(float angle, vector3 about) {
+    if (about.x == 1.0f && about.y == 0.0f && about.z == 0.0f) {
+        return matrix4x4_rotate_x(angle);
+    }
+    if (about.x == 0.0f && about.y == 1.0f && about.z == 0.0f) {
+        return matrix4x4_rotate_y(angle);
+    }
+    if (about.x == 0.0f && about.y == 0.0f && about.z == 1.0f) {
+        return matrix4x4_rotate_z(angle);
+    }
+    // For the derivation of this matrix, refer to the thesis 9.2.4. Rotations
+    // about Arbitrary Axes:
+    // https://repository.lboro.ac.uk/articles/thesis/Modelling_CPV/9523520
+    matrix4x4 result = MATRIX4X4_IDENTITY;
+    float c = cosf(angle);
+    float s = sinf(angle);
+    about = vector3_normalize(about);
+    float nc = 1 - c;
+    float xy = about.x * about.y;
+    float yz = about.y * about.z;
+    float zx = about.z * about.x;
+    float xs = about.x * s;
+    float ys = about.y * s;
+    float zs = about.z * s;
+
+    result.elements[0][0] = about.x * about.x * nc + c;
+    result.elements[0][1] = xy * nc - zs;
+    result.elements[0][2] = zx * nc + ys;
+
+    result.elements[1][0] = xy * nc + zs;
+    result.elements[1][1] = about.y * about.y * nc + c;
+    result.elements[1][2] = yz * nc - xs;
+
+    result.elements[2][0] = zx * nc - ys;
+    result.elements[2][1] = yz * nc + xs;
+    result.elements[2][2] = about.z * about.z * nc + c;
+
     return result;
 }
 

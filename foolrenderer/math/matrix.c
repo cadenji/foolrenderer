@@ -52,3 +52,5 @@ extern matrix4x4 matrix4x4_rotate_x(float angle);
 extern matrix4x4 matrix4x4_rotate_y(float angle);
 
 extern matrix4x4 matrix4x4_rotate_z(float angle);
+
+extern matrix4x4 matrix4x4_rotate(float angle, vector3 about);
