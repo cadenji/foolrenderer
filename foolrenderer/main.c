@@ -25,11 +25,14 @@
 #include <tgafunc.h>
 
 #include "graphics.h"
+#include "math/math_utility.h"
+#include "math/matrix.h"
+#include "math/vector.h"
 
 #define IMAGE_WIDTH 512
 #define IMAGE_HEIGHT 512
 
-static inline void endian_inversion(uint8_t *bytes, size_t size) {
+static void endian_inversion(uint8_t *bytes, size_t size) {
     uint8_t buffer;
     size_t left = 0, right = size - 1;
     while (left < right) {
@@ -46,13 +49,25 @@ int main(void) {
     tga_info *info;
     tga_create(&data, &info, IMAGE_WIDTH, IMAGE_HEIGHT, TGA_PIXEL_RGB24);
 
-    // Draw a red trangle.
     vector3 vertices[3] = {{{0.5f, -0.5f, 1.0f}},
                            {{-0.5f, 0.5f, 1.0f}},
                            {{-0.5f, -0.5f, 1.0f}}};
     vector3 colors[3] = {{{1.0f, 0.0f, 0.0f}},
                          {{0.0f, 1.0f, 0.0f}},
                          {{0.0f, 0.0f, 1.0f}}};
+    // Transform vertices: scale to (1, 0.5, 1), then rotate PI/2 (90 degrees)
+    // counterclockwise, then move 0.25 units to the left.
+    matrix4x4 mat_scaling = matrix4x4_scale((vector3){{1, 0.5f, 1}});
+    matrix4x4 mat_rotation = matrix4x4_rotate_z(HALF_PI);
+    matrix4x4 mat_translation = matrix4x4_translate((vector3){{0.25f, 0, 0}});
+    matrix4x4 mat_model = matrix4x4_multiply(mat_rotation, mat_scaling);
+    mat_model = matrix4x4_multiply(mat_translation, mat_model);
+    for (int i = 0; i < 3; i++) {
+        vector4 vertex = vector3_to_4(vertices[i], 1);
+        vertex = matrix4x4_multiply_vector4(mat_model, vertex);
+        vertices[i] = vecotr4_to_3(vertex);
+    }
+
     set_viewport(0, 0, IMAGE_WIDTH, IMAGE_HEIGHT);
     draw_triangle(vertices, colors, data);
 
