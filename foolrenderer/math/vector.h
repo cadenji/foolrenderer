@@ -218,18 +218,19 @@ inline float vector2_magnitude_squared(vector2 v) { return vector2_dot(v, v); }
 
 ///
 /// \brief Gets a normalized copy of the 2D vector. Returns a zero vector if the
-///        vector is too small to be normalized.
+///        vector magnitude is 0.
 ///
 /// \param v The vector to be normalized.
-/// \return Returns a normalized copy if the vector is not too small, otherwise
-///         returns zero vector.
+/// \return Returns a normalized copy if the vector magnitude is not equal 0,
+///         otherwise returns zero vector.
 ///
 inline vector2 vector2_normalize(vector2 v) {
     float square_magnitude = vector2_magnitude_squared(v);
+    if (square_magnitude == 0.0f) {
+        return VECTOR2_ZERO;
+    }
     if (fabsf(square_magnitude - 1.0f) < SMALL_ABSOLUTE_FLOAT) {
         return v;
-    } else if (square_magnitude < SMALL_ABSOLUTE_FLOAT) {
-        return VECTOR2_ZERO;
     }
     return vector2_divide(v, sqrtf(square_magnitude));
 }
@@ -306,18 +307,19 @@ inline float vector3_magnitude_squared(vector3 v) { return vector3_dot(v, v); }
 
 ///
 /// \brief Gets a normalized copy of the 3D vector. Returns a zero vector if the
-///        vector is too small to be normalized.
+///        vector magnitude is 0.
 ///
 /// \param v The vector to be normalized.
-/// \return Returns a normalized copy if the vector is not too small, otherwise
-///         returns zero vector.
+/// \return Returns a normalized copy if the vector magnitude is not equal 0,
+///         otherwise returns zero vector.
 ///
 inline vector3 vector3_normalize(vector3 v) {
     float square_magnitude = vector3_magnitude_squared(v);
+    if (square_magnitude == 0.0f) {
+        return VECTOR3_ZERO;
+    }
     if (fabsf(square_magnitude - 1.0f) < SMALL_ABSOLUTE_FLOAT) {
         return v;
-    } else if (square_magnitude < SMALL_ABSOLUTE_FLOAT) {
-        return VECTOR3_ZERO;
     }
     return vector3_divide(v, sqrtf(square_magnitude));
 }

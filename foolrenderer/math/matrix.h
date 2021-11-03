@@ -23,9 +23,6 @@
 #ifndef FOOLRENDERER_MATH_MATRIX_H_
 #define FOOLRENDERER_MATH_MATRIX_H_
 
-#include <math.h>
-
-#include "math/math_utility.h"
 #include "math/vector.h"
 
 ///
@@ -170,9 +167,8 @@ inline matrix4x4 matrix4x4_inverse(matrix4x4 m) {
     float determinant = a11 * adj.elements[0][0] + a21 * adj.elements[0][1] +
                         a31 * adj.elements[0][2] + a41 * adj.elements[0][3];
 
-    if (fabsf(determinant) < SMALL_ABSOLUTE_FLOAT) {
-        // Roughly thinks the determinant is zero,
-        // so the matrix is not invertible.
+    if (determinant == 0.0f) {
+        // The matrix is not invertible.
         return MATRIX4X4_ZERO;
     }
     return matrix4x4_multiply_scalar(adj, 1.0f / determinant);
