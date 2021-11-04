@@ -43,9 +43,7 @@ static struct {
 // to window space.
 static inline vector3 viewport_transform(vector3 vertex) {
     vertex.x = (vertex.x + 1.0f) * 0.5f * viewport.width + viewport.left;
-    // +Y is up in NDC space, but +Y is down in window space, so needs to flip
-    // the Y axis from up to down.
-    vertex.y = (-vertex.y + 1.0f) * 0.5f * viewport.height + viewport.bottom;
+    vertex.y = (vertex.y + 1.0f) * 0.5f * viewport.height + viewport.bottom;
     vertex.z = (vertex.z + 1.0f) * 0.5f;
     return vertex;
 }
@@ -91,15 +89,10 @@ void draw_triangle(const vector3 vertices[], const vector3 colors[],
 
     // Compute the area of the triangle multiplied by 2.
     float area = edge_function(v0, v1, v2);
-    if (area < 0) {
-        // Since the y-axis is flipped down when the vertex is transformed into
-        // screen space. So the triangle on the front becomes a clockwise
-        // winding and the area should be positive.
-        return;
-    }
-    if (area < SMALL_ABSOLUTE_FLOAT) {
-        // If the triangle area is too small, it is considered a degenerate
-        // triangle. Won't draw.
+    if (area >= 0) {
+        // If the area is 0, it means this is a degenerate triangle. If the area
+        // is positive, the triangle with clockwise winding.
+        // In both cases, the triangle does not need to be drawn.
         return;
     }
 
@@ -121,13 +114,16 @@ void draw_triangle(const vector3 vertices[], const vector3 colors[],
             b0 = edge_function(v1, v2, p);
             b1 = edge_function(v2, v0, p);
             b2 = edge_function(v0, v1, p);
-            if (b0 >= 0 && b1 >= 0 && b2 >= 0) {
+            if (b0 <= 0 && b1 <= 0 && b2 <= 0) {
                 b0 /= area;
                 b1 /= area;
                 b2 /= area;
-                color_p.r = b0 * colors[0].r + b1 * colors[1].r + b2 * colors[2].r;
-                color_p.g = b0 * colors[0].g + b1 * colors[1].g + b2 * colors[2].g;
-                color_p.b = b0 * colors[0].b + b1 * colors[1].b + b2 * colors[2].b;
+                color_p.r =
+                    b0 * colors[0].r + b1 * colors[1].r + b2 * colors[2].r;
+                color_p.g =
+                    b0 * colors[0].g + b1 * colors[1].g + b2 * colors[2].g;
+                color_p.b =
+                    b0 * colors[0].b + b1 * colors[1].b + b2 * colors[2].b;
                 uint8_t *pixel = get_pixel(framebuffer, x, y);
                 pixel[0] = color_p.r * 0xFF;
                 pixel[1] = color_p.g * 0xFF;

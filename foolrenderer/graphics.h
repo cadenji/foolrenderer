@@ -50,7 +50,7 @@ void set_viewport(int left, int bottom, uint32_t width, uint32_t height);
 /// The NDC uses a left-handed coordinate system, and point (-1, -1) is located
 /// at the the bottom-left corner (Y up).
 ///
-/// The origin (0, 0) of the framebuffer is in the upper-left corner (Y down).
+/// The origin (0, 0) of the framebuffer is in the bottom-left corner (Y up).
 ///
 /// \param vertices The vertices of the triangle in NDC space.
 /// \param colors The vertex colors of the triangle.

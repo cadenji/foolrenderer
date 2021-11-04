@@ -190,6 +190,11 @@ int main(int argc, char *argv[]) {
             endian_inversion(pixel, 3);
         }
     }
+    // This program uses OpenGL style coordinate system, the origin of window
+    // space is in the bottom-left corner. But the tgafunc default image origin
+    // is in the upper-left corner, so need to flip the image in the Y-axis
+    // direction.
+    tga_image_flip_v(data, info);
     tga_save_from_info(data, info, "output.tga");
 
     free(vertex_array);
