@@ -302,4 +302,46 @@ inline matrix4x4 matrix4x4_rotate(float angle, vector3 about) {
     return result;
 }
 
+///
+/// \brief Constructs a view matrix.
+///
+/// The view matrix is used to transform the world space vertices to the view
+/// space.
+///
+/// \param from The position of the camera point.
+/// \param to The position of the target point.
+/// \param up The direction of the up vector.
+/// \return The view matrix.
+///
+inline matrix4x4 matrix4x4_look_at(vector3 from, vector3 to, vector3 up) {
+    // For the derivation of this matrix, refer to:
+    // http://www.songho.ca/opengl/gl_camera.html#lookat
+    //
+    // In foolrenderer, world space and view space are right-handed coordinate
+    // systems (matches OpenGL convention), so the direction of z_axis is
+    // opposite to the direction in which the camera points to the target.
+    vector3 z_axis = vector3_normalize(vector3_subtract(from, to));
+    vector3 x_axis = vector3_normalize(vector3_cross(up, z_axis));
+    vector3 y_axis = vector3_cross(z_axis, x_axis);
+    matrix4x4 result = MATRIX4X4_IDENTITY;
+
+    result.elements[0][0] = x_axis.x;
+    result.elements[0][1] = x_axis.y;
+    result.elements[0][2] = x_axis.z;
+
+    result.elements[1][0] = y_axis.x;
+    result.elements[1][1] = y_axis.y;
+    result.elements[1][2] = y_axis.z;
+
+    result.elements[2][0] = z_axis.x;
+    result.elements[2][1] = z_axis.y;
+    result.elements[2][2] = z_axis.z;
+
+    result.elements[0][3] = -vector3_dot(x_axis, from);
+    result.elements[1][3] = -vector3_dot(y_axis, from);
+    result.elements[2][3] = -vector3_dot(z_axis, from);
+
+    return result;
+}
+
 #endif  // FOOLRENDERER_MATH_MATRIX_H_
