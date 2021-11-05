@@ -35,7 +35,9 @@
 #define IMAGE_WIDTH 512
 #define IMAGE_HEIGHT 512
 
-static const vector3 LIGHT_DIRECTION = {{0.0f, 0.0f, -1.0f}};
+// For shading, use the direction opposite to the direction of the parallel
+// light.
+static const vector3 LIGHT_DIRECTION = {{0.0f, 0.0f, 1.0f}};
 
 // As a callback function of tinyobj_parse_obj(). Provides services for loading
 // files into memory.
@@ -128,10 +130,14 @@ static bool load_obj(vector3 **vertex_array, size_t *triangle_count,
     return has_error;
 }
 
+// This function requires the right-handed coordinate system, and the triangle
+// use counterclockwise winding.
 static vector3 calculate_triangle_normal(const vector3 vertices[]) {
+    // Refer to:
+    // https://www.khronos.org/opengl/wiki/Calculating_a_Surface_Normal
     vector3 v01 = vector3_subtract(vertices[1], vertices[0]);
     vector3 v02 = vector3_subtract(vertices[2], vertices[0]);
-    vector3 n = vector3_cross(v02, v01);
+    vector3 n = vector3_cross(v01, v02);
     return vector3_normalize(n);
 }
 
