@@ -30,14 +30,11 @@
 #include <tinyobj_loader_c.h>
 
 #include "graphics.h"
+#include "math/matrix.h"
 #include "math/vector.h"
 
 #define IMAGE_WIDTH 512
 #define IMAGE_HEIGHT 512
-
-// For shading, use the direction opposite to the direction of the parallel
-// light.
-static const vector3 LIGHT_DIRECTION = {{0.0f, 0.0f, 1.0f}};
 
 // As a callback function of tinyobj_parse_obj(). Provides services for loading
 // files into memory.
@@ -170,6 +167,17 @@ int main(int argc, char *argv[]) {
     tga_info *info;
     tga_create(&data, &info, IMAGE_WIDTH, IMAGE_HEIGHT, TGA_PIXEL_RGB24);
 
+    // For shading, use the direction opposite to the direction of the parallel
+    // light.
+    vector3 light_direction = {{0.0f, 0.0f, 1.0f}};
+    matrix4x4 view_matrix = matrix4x4_look_at((vector3){{1.0f, 1.0f, 3.0f}},
+                                              (vector3){{0.0f, 0.0f, 0.0f}},
+                                              (vector3){{0.0f, 1.0f, 0.0f}});
+    matrix4x4 projection_matrix = matrix4x4_perspective(
+        HALF_PI / 2.0f, IMAGE_WIDTH / IMAGE_HEIGHT, 0.1f, 5.0f);
+    matrix4x4 transform_matrix =
+        matrix4x4_multiply(projection_matrix, view_matrix);
+
     // Draw the model.
     set_viewport(0, 0, IMAGE_WIDTH, IMAGE_HEIGHT);
     vector3 colors[3];
@@ -177,9 +185,16 @@ int main(int argc, char *argv[]) {
         vector3 *triangle_vertices = vertex_array + (t * 3);
         // Flat shading.
         vector3 normal = calculate_triangle_normal(triangle_vertices);
-        float intensity = vector3_dot(normal, LIGHT_DIRECTION);
+        float intensity = vector3_dot(normal, light_direction);
         if (intensity > 0.0f) {
             for (int i = 0; i < 3; i++) {
+                // Transform vertices to NDC.
+                vector4 vertex = vector3_to_4(triangle_vertices[i], 1);
+                vertex = matrix4x4_multiply_vector4(transform_matrix, vertex);
+                triangle_vertices[i].x = vertex.x / vertex.w;
+                triangle_vertices[i].y = vertex.y / vertex.w;
+                triangle_vertices[i].z = vertex.z / vertex.w;
+                // Set vertice color.
                 colors[i].x = intensity;
                 colors[i].y = intensity;
                 colors[i].z = intensity;
