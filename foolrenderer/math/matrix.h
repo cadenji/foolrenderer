@@ -23,6 +23,8 @@
 #ifndef FOOLRENDERER_MATH_MATRIX_H_
 #define FOOLRENDERER_MATH_MATRIX_H_
 
+#include <math.h>
+
 #include "math/vector.h"
 
 ///
@@ -341,6 +343,51 @@ inline matrix4x4 matrix4x4_look_at(vector3 from, vector3 to, vector3 up) {
     result.elements[1][3] = -vector3_dot(y_axis, from);
     result.elements[2][3] = -vector3_dot(z_axis, from);
 
+    return result;
+}
+
+///
+/// \brief Constructs a perspective projection matrix, follow OpenGL convention.
+///
+/// \param fov The vertical field of view in radians.
+/// \param aspect The aspect ration (width divided by height).
+/// \param near The distance to the near depth clipping plane.
+/// \param far The distance to the far depth clipping plane.
+/// \return The perspective projection matrix.
+///
+inline matrix4x4 matrix4x4_perspective(float fov, float aspect, float near,
+                                       float far) {
+    // For the derivation of this matrix, refer to:
+    // http://www.songho.ca/opengl/gl_projectionmatrix.html
+    matrix4x4 result = MATRIX4X4_ZERO;
+    float fn = far - near;
+    result.elements[1][1] = 1.0f / tanf(fov / 2.0f);
+    result.elements[0][0] = result.elements[1][1] / aspect;
+    result.elements[2][2] = (-far - near) / fn;
+    result.elements[2][3] = (-2.0f * far * near) / fn;
+    result.elements[3][2] = -1.0f;
+    return result;
+}
+
+///
+/// \brief Constructs an orthogonal projection matrix, follow OpenGL convention.
+///
+/// \param right Coordinate of the right clipping plane .
+/// \param top Coordinates of the top clipping plane.
+/// \param near The distance to the near depth clipping plane.
+/// \param far The distance to the far depth clipping plane.
+/// \return The orthogonal projection matrix.
+///
+inline matrix4x4 matrix4x4_orthographic(float right, float top, float near,
+                                        float far) {
+    // For the derivation of this matrix, refer to:
+    // http://www.songho.ca/opengl/gl_projectionmatrix.html
+    matrix4x4 result = MATRIX4X4_IDENTITY;
+    float fn = far - near;
+    result.elements[0][0] = 1.0f / right;
+    result.elements[1][1] = 1.0f / top;
+    result.elements[2][2] = -2.0f / fn;
+    result.elements[2][3] = (-near - far) / fn;
     return result;
 }
 

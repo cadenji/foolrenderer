@@ -56,3 +56,9 @@ extern matrix4x4 matrix4x4_rotate_z(float angle);
 extern matrix4x4 matrix4x4_rotate(float angle, vector3 about);
 
 extern matrix4x4 matrix4x4_look_at(vector3 eye, vector3 target, vector3 up);
+
+extern matrix4x4 matrix4x4_perspective(float fov, float aspect, float near,
+                                       float far);
+
+extern matrix4x4 matrix4x4_orthographic(float right, float top, float near,
+                                        float far);
