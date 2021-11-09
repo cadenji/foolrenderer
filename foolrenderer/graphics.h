@@ -43,20 +43,20 @@ void set_viewport(int left, int bottom, uint32_t width, uint32_t height);
 ///
 /// \brief Draws the triangle to the framebuffer.
 ///
-/// The vertices of the triangle in normalized device coordinates (NDC). And
-/// triangles defined with counterclockwise winding are treated as front-facing
-/// triangles. This function only draws front-facing triangles.
+/// The vertices of the triangle in clip space. And triangles defined with
+/// counterclockwise winding are treated as front-facing triangles. This
+/// function only draws front-facing triangles.
 ///
-/// The NDC uses a left-handed coordinate system, and point (-1, -1) is located
-/// at the the bottom-left corner (Y up).
+/// The clip space follow OpenGL convention, uses a left-handed coordinate
+/// system, near plane is at z=-1, and far plane is at z=1.
 ///
-/// The origin (0, 0) of the framebuffer is in the bottom-left corner (Y up).
+/// The origin (0, 0) of the framebuffer is in the bottom-left corner.
 ///
-/// \param vertices The vertices of the triangle in NDC space.
+/// \param vertices The vertices of the triangle in clip space.
 /// \param colors The vertex colors of the triangle.
 /// \param framebuffer The framebuffer which the triangle is drawn.
 ///
-void draw_triangle(const vector3 vertices[], const vector3 colors[],
+void draw_triangle(const vector4 vertices[], const vector3 colors[],
                    uint8_t *framebuffer);
 
 #endif  // FOOLRENDERER_GRAPHICS_H_

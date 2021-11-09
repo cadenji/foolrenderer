@@ -39,13 +39,40 @@ static struct {
     uint32_t width, height;
 } viewport = {0};
 
-// Transforms the vertex position from normalized device coordinates (NDC) space
-// to window space.
-static inline vector3 viewport_transform(vector3 vertex) {
-    vertex.x = (vertex.x + 1.0f) * 0.5f * viewport.width + viewport.left;
-    vertex.y = (vertex.y + 1.0f) * 0.5f * viewport.height + viewport.bottom;
-    vertex.z = (vertex.z + 1.0f) * 0.5f;
-    return vertex;
+// The vertices should be in clip space.
+// Return true if the triangle needs to be discarded, otherwise returns false.
+// This is just a rough method, if at least one vertex is outside the viewing
+// volume, the entire triangle will be discarded.
+static bool clipping_test(const vector4 vertices[]) {
+    for (int v = 0; v < 3; v++) {
+        float w = vertices[v].w;
+        for (int c = 0; c < 3; c++) {
+            float component = vertices[v].elements[c];
+            if (component < -w || component > w) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+// Transform vertex from clipping space to normalized device coordinates (NDC).
+static inline void perspective_division(vector3 *vertex_ndc,
+                                        const vector4 *vertex_clip) {
+    float w = vertex_clip->w;
+    vertex_ndc->x = vertex_clip->x / w;
+    vertex_ndc->y = vertex_clip->y / w;
+    vertex_ndc->z = vertex_clip->z / w;
+}
+
+// Transforms the vertex from NDC to window space.
+static inline void viewport_transform(vector3 *vertex_window,
+                                      const vector3 *vertex_ndc) {
+    vertex_window->x =
+        (vertex_ndc->x + 1.0f) * 0.5f * viewport.width + viewport.left;
+    vertex_window->y =
+        (vertex_ndc->y + 1.0f) * 0.5f * viewport.height + viewport.bottom;
+    vertex_window->z = (vertex_ndc->z + 1.0f) * 0.5f;
 }
 
 // Computes the determinant of a 2x2 matrix composed of vectors (c-a) and (b-a).
@@ -56,7 +83,8 @@ static inline float edge_function(vector2 a, vector2 b, vector2 c) {
     return (c.x - a.x) * (b.y - a.y) - (c.y - a.y) * (b.x - a.x);
 }
 
-static inline uint8_t *get_pixel(uint8_t *framebuffer, uint32_t x, uint32_t y) {
+static inline uint8_t *get_pixel(uint8_t framebuffer[], uint32_t x,
+                                 uint32_t y) {
     return framebuffer + (y * viewport.width + x) * 3;
 }
 
@@ -67,25 +95,31 @@ void set_viewport(int left, int bottom, uint32_t width, uint32_t height) {
     viewport.height = height;
 }
 
-void draw_triangle(const vector3 vertices[], const vector3 colors[],
-                   uint8_t *framebuffer) {
-    // Using edge functions to raster polygons, refer to:
-    // https://www.scratchapixel.com/lessons/3d-basic-rendering/rasterization-practical-implementation/rasterization-stage
-    vector2 bbmin = {{FLT_MAX, FLT_MAX}}, bbmax = {{FLT_MIN, FLT_MIN}};
-    vector3 transformed_vertices[3];
+// Using edge functions to raster triangles, refer to:
+// https://www.scratchapixel.com/lessons/3d-basic-rendering/rasterization-practical-implementation/rasterization-stage
+void draw_triangle(const vector4 vertices[], const vector3 colors[],
+                   uint8_t framebuffer[]) {
+    if (clipping_test(vertices)) {
+        return;
+    }
+    vector3 vertex_array[3];
     for (int i = 0; i < 3; i++) {
-        transformed_vertices[i] = viewport_transform(vertices[i]);
-        // Construct the bounding box of the triangle.
-        bbmin.x = MIN(bbmin.x, transformed_vertices[i].x);
-        bbmin.y = MIN(bbmin.y, transformed_vertices[i].y);
-        bbmax.x = MAX(bbmax.x, transformed_vertices[i].x);
-        bbmax.y = MAX(bbmax.y, transformed_vertices[i].y);
+        perspective_division(vertex_array + i, vertices + i);
+        viewport_transform(vertex_array + i, vertex_array + i);
+    }
+    // Construct the bounding box of the triangle.
+    vector2 bbmin = {{FLT_MAX, FLT_MAX}}, bbmax = {{FLT_MIN, FLT_MIN}};
+    for (int i = 0; i < 3; i++) {
+        bbmin.x = MIN(bbmin.x, vertex_array[i].x);
+        bbmin.y = MIN(bbmin.y, vertex_array[i].y);
+        bbmax.x = MAX(bbmax.x, vertex_array[i].x);
+        bbmax.y = MAX(bbmax.y, vertex_array[i].y);
     }
 
-    // The 2D coordinates of the transformed_vertices projected on the window.
-    vector2 v0 = vector3_to_2(transformed_vertices[0]);
-    vector2 v1 = vector3_to_2(transformed_vertices[1]);
-    vector2 v2 = vector3_to_2(transformed_vertices[2]);
+    // The 2D coordinates of the vertex_array projected on the window.
+    vector2 v0 = vector3_to_2(vertex_array[0]);
+    vector2 v1 = vector3_to_2(vertex_array[1]);
+    vector2 v2 = vector3_to_2(vertex_array[2]);
 
     // Compute the area of the triangle multiplied by 2.
     float area = edge_function(v0, v1, v2);

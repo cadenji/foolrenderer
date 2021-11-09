@@ -181,19 +181,17 @@ int main(int argc, char *argv[]) {
     // Draw the model.
     set_viewport(0, 0, IMAGE_WIDTH, IMAGE_HEIGHT);
     vector3 colors[3];
+    vector4 triangle_vertices[3];
     for (size_t t = 0; t < triangle_count; t++) {
-        vector3 *triangle_vertices = vertex_array + (t * 3);
+        vector3 *vertices = vertex_array + (t * 3);
         // Flat shading.
-        vector3 normal = calculate_triangle_normal(triangle_vertices);
+        vector3 normal = calculate_triangle_normal(vertices);
         float intensity = vector3_dot(normal, light_direction);
         if (intensity > 0.0f) {
             for (int i = 0; i < 3; i++) {
-                // Transform vertices to NDC.
-                vector4 vertex = vector3_to_4(triangle_vertices[i], 1);
-                vertex = matrix4x4_multiply_vector4(transform_matrix, vertex);
-                triangle_vertices[i].x = vertex.x / vertex.w;
-                triangle_vertices[i].y = vertex.y / vertex.w;
-                triangle_vertices[i].z = vertex.z / vertex.w;
+                // Transform vertices to clip space.
+                triangle_vertices[i] = vector3_to_4(vertices[i], 1);
+                triangle_vertices[i] = matrix4x4_multiply_vector4(transform_matrix, triangle_vertices[i]);
                 // Set vertice color.
                 colors[i].x = intensity;
                 colors[i].y = intensity;
