@@ -163,9 +163,8 @@ int main(int argc, char *argv[]) {
         return 0;
     }
     // Create framebuffer.
-    uint8_t *data;
-    tga_info *info;
-    tga_create(&data, &info, IMAGE_WIDTH, IMAGE_HEIGHT, TGA_PIXEL_RGB24);
+    struct framebuffer *framebuffer;
+    framebuffer = generate_framebuffer(IMAGE_WIDTH, IMAGE_HEIGHT);
 
     // For shading, use the direction opposite to the direction of the parallel
     // light.
@@ -191,21 +190,28 @@ int main(int argc, char *argv[]) {
             for (int i = 0; i < 3; i++) {
                 // Transform vertices to clip space.
                 triangle_vertices[i] = vector3_to_4(vertices[i], 1);
-                triangle_vertices[i] = matrix4x4_multiply_vector4(transform_matrix, triangle_vertices[i]);
+                triangle_vertices[i] = matrix4x4_multiply_vector4(
+                    transform_matrix, triangle_vertices[i]);
                 // Set vertice color.
                 colors[i].x = intensity;
                 colors[i].y = intensity;
                 colors[i].z = intensity;
             }
-            draw_triangle(triangle_vertices, colors, data);
+            draw_triangle(framebuffer, triangle_vertices, colors);
         }
     }
 
+    // Copy the color buffer data to the TGA image.
+    uint8_t *tga_data;
+    tga_info *tga_info;
+    tga_create(&tga_data, &tga_info, IMAGE_WIDTH, IMAGE_HEIGHT, TGA_PIXEL_RGB24);
+    memcpy(tga_data, framebuffer->color_buffer,
+           (size_t)IMAGE_WIDTH * IMAGE_HEIGHT * 3);
     // Convert all pixels to little endian and save as TGA format file.
     uint8_t *pixel;
     for (int y = 0; y < IMAGE_WIDTH; y++) {
         for (int x = 0; x < IMAGE_HEIGHT; x++) {
-            pixel = tga_get_pixel(data, info, x, y);
+            pixel = tga_get_pixel(tga_data, tga_info, x, y);
             endian_inversion(pixel, 3);
         }
     }
@@ -213,11 +219,12 @@ int main(int argc, char *argv[]) {
     // space is in the bottom-left corner. But the tgafunc default image origin
     // is in the upper-left corner, so need to flip the image in the Y-axis
     // direction.
-    tga_image_flip_v(data, info);
-    tga_save_from_info(data, info, "output.tga");
+    tga_image_flip_v(tga_data, tga_info);
+    tga_save_from_info(tga_data, tga_info, "output.tga");
 
+    tga_free_data(tga_data);
+    tga_free_info(tga_info);
+    delete_framebuffer(framebuffer);
     free(vertex_array);
-    tga_free_data(data);
-    tga_free_info(info);
     return 0;
 }

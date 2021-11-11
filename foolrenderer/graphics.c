@@ -26,6 +26,8 @@
 #include <math.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "math/math_utility.h"
 #include "math/vector.h"
@@ -83,9 +85,58 @@ static inline float edge_function(vector2 a, vector2 b, vector2 c) {
     return (c.x - a.x) * (b.y - a.y) - (c.y - a.y) * (b.x - a.x);
 }
 
-static inline uint8_t *get_pixel(uint8_t framebuffer[], uint32_t x,
+static inline uint8_t *get_pixel(struct framebuffer *framebuffer, uint32_t x,
                                  uint32_t y) {
-    return framebuffer + (y * viewport.width + x) * 3;
+    return framebuffer->color_buffer + (y * framebuffer->width + x) * 3;
+}
+
+static inline float *get_depth(struct framebuffer *framebuffer, uint32_t x,
+                               uint32_t y) {
+    return framebuffer->depth_buffer + (y * framebuffer->width + x);
+}
+
+struct framebuffer *generate_framebuffer(uint32_t width, uint32_t height) {
+    size_t buffer_dimension = (size_t)width * height;
+    // Use RGB (3 bytes per pixel) pixel format.
+    size_t color_buffer_size = buffer_dimension * 3;
+    size_t depth_buffer_size = buffer_dimension * sizeof(float);
+
+    uint8_t *color_buffer = (uint8_t *)malloc(color_buffer_size);
+    float *depth_buffer = (float *)malloc(depth_buffer_size);
+    if (color_buffer == NULL || depth_buffer == NULL) {
+        free(color_buffer);
+        free(depth_buffer);
+        return NULL;
+    }
+    struct framebuffer *framebuffer;
+    framebuffer = (struct framebuffer *)malloc(sizeof(struct framebuffer));
+    if (framebuffer == NULL) {
+        free(color_buffer);
+        free(depth_buffer);
+        return NULL;
+    }
+
+    framebuffer->width = width;
+    framebuffer->height = height;
+    framebuffer->color_buffer = color_buffer;
+    framebuffer->depth_buffer = depth_buffer;
+    clear_framebuffer(framebuffer);
+    return framebuffer;
+}
+
+void clear_framebuffer(struct framebuffer *framebuffer) {
+    size_t buffer_dimension = (size_t)framebuffer->width * framebuffer->height;
+    size_t color_buffer_size = buffer_dimension * 3;
+    memset(framebuffer->color_buffer, 0, color_buffer_size);
+    for (size_t i = 0; i < buffer_dimension; i++) {
+        framebuffer->depth_buffer[i] = 1.0f;
+    }
+}
+
+void delete_framebuffer(struct framebuffer *framebuffer) {
+    free(framebuffer->color_buffer);
+    free(framebuffer->depth_buffer);
+    free(framebuffer);
 }
 
 void set_viewport(int left, int bottom, uint32_t width, uint32_t height) {
@@ -97,8 +148,8 @@ void set_viewport(int left, int bottom, uint32_t width, uint32_t height) {
 
 // Using edge functions to raster triangles, refer to:
 // https://www.scratchapixel.com/lessons/3d-basic-rendering/rasterization-practical-implementation/rasterization-stage
-void draw_triangle(const vector4 vertices[], const vector3 colors[],
-                   uint8_t framebuffer[]) {
+void draw_triangle(struct framebuffer *framebuffer, const vector4 vertices[],
+                   const vector3 colors[]) {
     if (clipping_test(vertices)) {
         return;
     }
@@ -137,11 +188,13 @@ void draw_triangle(const vector4 vertices[], const vector3 colors[],
     float b0, b1, b2;
     // The color of p.
     vector3 color_p;
+    // The depth of p.
+    float depth_p;
     // No need to traverses pixels outside the window.
-    uint32_t x_min = MAX(0, MIN(viewport.width - 1, floorf(bbmin.x)));
-    uint32_t y_min = MAX(0, MIN(viewport.height - 1, floorf(bbmin.y)));
-    uint32_t x_max = MAX(0, MIN(viewport.width - 1, floorf(bbmax.x)));
-    uint32_t y_max = MAX(0, MIN(viewport.height - 1, floorf(bbmax.y)));
+    uint32_t x_min = MAX(0, MIN(framebuffer->width - 1, floorf(bbmin.x)));
+    uint32_t y_min = MAX(0, MIN(framebuffer->height - 1, floorf(bbmin.y)));
+    uint32_t x_max = MAX(0, MIN(framebuffer->width - 1, floorf(bbmax.x)));
+    uint32_t y_max = MAX(0, MIN(framebuffer->height - 1, floorf(bbmax.y)));
     for (uint32_t y = y_min; y <= y_max; y++) {
         for (uint32_t x = x_min; x <= x_max; x++) {
             p = (vector2){{x, y}};
@@ -152,6 +205,16 @@ void draw_triangle(const vector4 vertices[], const vector3 colors[],
                 b0 /= area;
                 b1 /= area;
                 b2 /= area;
+
+                // Depth test.
+                depth_p = b0 * vertex_array[0].z + b1 * vertex_array[1].z +
+                          b2 * vertex_array[2].z;
+                float *depth = get_depth(framebuffer, x, y);
+                if (depth_p > *depth) {
+                    continue;
+                }
+                *depth = depth_p;
+
                 color_p.r =
                     b0 * colors[0].r + b1 * colors[1].r + b2 * colors[2].r;
                 color_p.g =
