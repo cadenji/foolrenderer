@@ -27,6 +27,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define TINYOBJ_LOADER_C_IMPLEMENTATION
 #include <tinyobj_loader_c.h>
@@ -41,22 +42,62 @@ struct mesh {
     size_t material_count;
 };
 
+static void extract_directory_path(char *file_name) {
+    char *last_separator = NULL;
+    if (file_name == NULL) {
+        return;
+    }
+#ifdef _WIN32
+    last_separator = strrchr(file_name, '\\');
+#else
+    last_separator = strrchr(file_name, '/');
+#endif
+    if (last_separator == NULL) {
+        *file_name = '\0';
+    } else {
+        *last_separator = '\0';
+    }
+}
+
 // As a callback function of tinyobj_parse_obj(). Provides services for loading
 // files into memory.
 static void get_file_data(void *context, const char *file_name, int is_mtl,
                           const char *obj_file_name, char **buffer,
                           size_t *buffer_size) {
-    (void)is_mtl;
-    (void)obj_file_name;
     void **user_context = context;
     *user_context = NULL;
     *buffer = NULL;
     *buffer_size = 0;
+    if (file_name == NULL) {
+        return;
+    }
+    // For .mtl, extract directory path from .obj filename and append
+    // .mtl filename.
+    char *directory_path = NULL;
+    if (is_mtl && obj_file_name != NULL) {
+        directory_path = my_strdup(obj_file_name, strlen(obj_file_name));
+        extract_directory_path(directory_path);
+    }
 
-    FILE *file = fopen(file_name, "r");
+    FILE *file;
+    size_t directory_length =
+        directory_path == NULL ? 0 : strlen(directory_path);
+    if (directory_length > 0) {
+        // The length is increased by 2 for the characters ‘/’ and ‘\0’.
+        size_t full_path_length = directory_length + strlen(file_name) + 2;
+        char full_path[full_path_length];
+        strcpy(full_path, directory_path);
+        strcat(full_path, "/");
+        strcat(full_path, file_name);
+        file = fopen(full_path, "r");
+    } else {
+        file = fopen(file_name, "r");
+    }
+    free(directory_path);
     if (file == NULL) {
         return;
     }
+
     fseek(file, 0, SEEK_END);
     long file_size = ftell(file);
     fseek(file, 0, SEEK_SET);
