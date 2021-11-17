@@ -22,6 +22,7 @@
 
 #include "mesh.h"
 
+#include <cwalk.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -42,23 +43,6 @@ struct mesh {
     size_t material_count;
 };
 
-static void extract_directory_path(char *file_name) {
-    char *last_separator = NULL;
-    if (file_name == NULL) {
-        return;
-    }
-#ifdef _WIN32
-    last_separator = strrchr(file_name, '\\');
-#else
-    last_separator = strrchr(file_name, '/');
-#endif
-    if (last_separator == NULL) {
-        *file_name = '\0';
-    } else {
-        *last_separator = '\0';
-    }
-}
-
 // As a callback function of tinyobj_parse_obj(). Provides services for loading
 // files into memory.
 static void get_file_data(void *context, const char *file_name, int is_mtl,
@@ -71,29 +55,29 @@ static void get_file_data(void *context, const char *file_name, int is_mtl,
     if (file_name == NULL) {
         return;
     }
-    // For .mtl, extract directory path from .obj filename and append
-    // .mtl filename.
-    char *directory_path = NULL;
-    if (is_mtl && obj_file_name != NULL) {
-        directory_path = my_strdup(obj_file_name, strlen(obj_file_name));
-        extract_directory_path(directory_path);
-    }
 
     FILE *file;
-    size_t directory_length =
-        directory_path == NULL ? 0 : strlen(directory_path);
-    if (directory_length > 0) {
-        // The length is increased by 2 for the characters ‘/’ and ‘\0’.
-        size_t full_path_length = directory_length + strlen(file_name) + 2;
-        char full_path[full_path_length];
-        strcpy(full_path, directory_path);
-        strcat(full_path, "/");
-        strcat(full_path, file_name);
-        file = fopen(full_path, "r");
+    if (is_mtl && obj_file_name != NULL) {
+        // For .mtl, extract directory name from .obj filename and append
+        // .mtl filename.
+        size_t directory_name_length;
+        cwk_path_get_dirname(obj_file_name, &directory_name_length);
+        if (directory_name_length > 0) {
+            char directory_name[directory_name_length];
+            strncpy(directory_name, obj_file_name, directory_name_length - 1);
+            directory_name[directory_name_length - 1] = '\0';
+            size_t final_name_length =
+                directory_name_length + strlen(file_name) + 1;
+            char final_name[final_name_length];
+            cwk_path_join(directory_name, file_name, final_name,
+                          final_name_length);
+            file = fopen(final_name, "r");
+        } else {
+            file = fopen(file_name, "r");
+        }
     } else {
         file = fopen(file_name, "r");
     }
-    free(directory_path);
     if (file == NULL) {
         return;
     }
