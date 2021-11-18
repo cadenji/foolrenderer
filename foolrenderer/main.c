@@ -27,6 +27,7 @@
 #include <tgafunc.h>
 
 #include "graphics.h"
+#include "math/math_utility.h"
 #include "math/matrix.h"
 #include "math/vector.h"
 #include "mesh.h"
@@ -86,10 +87,8 @@ int main(int argc, char *argv[]) {
         mesh_get_normals(normals, mesh, t);
         for (int i = 0; i < 3; i++) {
             // Gouraud shading.
-            float intensity = vector3_dot(normals[i], light_direction);
-            if (intensity < 0.0f) {
-                intensity = 0.0f;
-            }
+            float intensity =
+                clamp01_float(vector3_dot(normals[i], light_direction));
             colors[i].x = intensity;
             colors[i].y = intensity;
             colors[i].z = intensity;

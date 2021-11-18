@@ -32,10 +32,6 @@
 #include "math/math_utility.h"
 #include "math/vector.h"
 
-#define MIN(a, b) (((a) < (b)) ? (a) : (b))
-
-#define MAX(a, b) (((a) > (b)) ? (a) : (b))
-
 static struct {
     int left, bottom;
     uint32_t width, height;
@@ -161,10 +157,10 @@ void draw_triangle(struct framebuffer *framebuffer, const vector4 vertices[],
     // Construct the bounding box of the triangle.
     vector2 bbmin = {{FLT_MAX, FLT_MAX}}, bbmax = {{FLT_MIN, FLT_MIN}};
     for (int i = 0; i < 3; i++) {
-        bbmin.x = MIN(bbmin.x, vertex_array[i].x);
-        bbmin.y = MIN(bbmin.y, vertex_array[i].y);
-        bbmax.x = MAX(bbmax.x, vertex_array[i].x);
-        bbmax.y = MAX(bbmax.y, vertex_array[i].y);
+        bbmin.x = min_float(bbmin.x, vertex_array[i].x);
+        bbmin.y = min_float(bbmin.y, vertex_array[i].y);
+        bbmax.x = max_float(bbmax.x, vertex_array[i].x);
+        bbmax.y = max_float(bbmax.y, vertex_array[i].y);
     }
 
     // The 2D coordinates of the vertex_array projected on the window.
@@ -191,10 +187,10 @@ void draw_triangle(struct framebuffer *framebuffer, const vector4 vertices[],
     // The depth of p.
     float depth_p;
     // No need to traverses pixels outside the window.
-    uint32_t x_min = MAX(0, MIN(framebuffer->width - 1, floorf(bbmin.x)));
-    uint32_t y_min = MAX(0, MIN(framebuffer->height - 1, floorf(bbmin.y)));
-    uint32_t x_max = MAX(0, MIN(framebuffer->width - 1, floorf(bbmax.x)));
-    uint32_t y_max = MAX(0, MIN(framebuffer->height - 1, floorf(bbmax.y)));
+    uint32_t x_min = clamp_int(floorf(bbmin.x), 0, framebuffer->width - 1);
+    uint32_t y_min = clamp_int(floorf(bbmin.y), 0, framebuffer->height - 1);
+    uint32_t x_max = clamp_int(floorf(bbmax.x), 0, framebuffer->width - 1);
+    uint32_t y_max = clamp_int(floorf(bbmax.y), 0, framebuffer->height - 1);
     for (uint32_t y = y_min; y <= y_max; y++) {
         for (uint32_t x = x_min; x <= x_max; x++) {
             p = (vector2){{x, y}};
