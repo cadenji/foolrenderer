@@ -6,6 +6,7 @@ add_executable(${PROJECT_NAME}
     foolrenderer/main.c
     foolrenderer/mesh.c
     foolrenderer/graphics.c
+    foolrenderer/texture.c
     foolrenderer/math/vector.c
     foolrenderer/math/matrix.c
     foolrenderer/math/math_utility.c
