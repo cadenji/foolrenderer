@@ -53,11 +53,11 @@ struct texture *generate_texture(uint32_t width, uint32_t height,
 
     // Calculate floating-point type pixel data based on image data.
     for (size_t p = 0; p < pixel_count; p++) {
-        const uint8_t *image_pixel = data + p;
+        const uint8_t *image_pixel = data + p * 3;
         vector4 *texture_pixel = texture->pixels + p;
-        texture_pixel->r = image_pixel[0] / (float)255.0f;
-        texture_pixel->g = image_pixel[1] / (float)255.0f;
-        texture_pixel->b = image_pixel[2] / (float)255.0f;
+        texture_pixel->r = image_pixel[0] / 255.0f;
+        texture_pixel->g = image_pixel[1] / 255.0f;
+        texture_pixel->b = image_pixel[2] / 255.0f;
         texture_pixel->a = 1.0f;
     }
     texture->width = width;
