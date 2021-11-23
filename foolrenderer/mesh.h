@@ -88,4 +88,22 @@ bool mesh_get_texture_coordinates(vector2 texture_coordinates[],
 bool mesh_get_normals(vector3 normals[], const struct mesh *mesh,
                       uint32_t triangle_index);
 
+///
+/// \brief Gets the directory where the model file is located when the mesh is
+///        loaded.
+///
+/// \param mesh The mesh object.
+/// \return The directory name. If no directory name, returns an empty string.
+///
+const char *mesh_get_directory_name(const struct mesh *mesh);
+
+///
+/// \brief Gets the file name of the diffuse texture map of the mesh object.
+///
+/// \param mesh The mesh object.
+/// \return The file name of the diffuse texture map. If not exist, returns an
+///         empty string.
+///
+const char *mesh_get_diffuse_texture_name(const struct mesh *mesh);
+
 #endif  // FOOLRENDERER_MESH_H_

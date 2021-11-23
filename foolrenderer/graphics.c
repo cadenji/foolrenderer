@@ -31,6 +31,7 @@
 
 #include "math/math_utility.h"
 #include "math/vector.h"
+#include "texture.h"
 
 static struct {
     int left, bottom;
@@ -144,14 +145,17 @@ void set_viewport(int left, int bottom, uint32_t width, uint32_t height) {
 
 // Using edge functions to raster triangles, refer to:
 // https://www.scratchapixel.com/lessons/3d-basic-rendering/rasterization-practical-implementation/rasterization-stage
-void draw_triangle(struct framebuffer *framebuffer, const vector4 vertices[],
-                   const vector3 colors[]) {
-    if (clipping_test(vertices)) {
+void draw_triangle(struct framebuffer *framebuffer,
+                   const vector4 vertex_positions[],
+                   const vector2 texture_coordinates[],
+                   const struct texture *diffuse_texture,
+                   const float intensities[]) {
+    if (clipping_test(vertex_positions)) {
         return;
     }
     vector3 vertex_array[3];
     for (int i = 0; i < 3; i++) {
-        perspective_division(vertex_array + i, vertices + i);
+        perspective_division(vertex_array + i, vertex_positions + i);
         viewport_transform(vertex_array + i, vertex_array + i);
     }
     // Construct the bounding box of the triangle.
@@ -179,13 +183,6 @@ void draw_triangle(struct framebuffer *framebuffer, const vector4 vertices[],
 
     // Traverse find the pixels covered by the triangle. If found, compute the
     // barycentric coordinates of the point in the triangle.
-    vector2 p;
-    // The barycentric coordinates of p.
-    float b0, b1, b2;
-    // The color of p.
-    vector3 color_p;
-    // The depth of p.
-    float depth_p;
     // No need to traverses pixels outside the window.
     uint32_t x_min = clamp_int(floorf(bbmin.x), 0, framebuffer->width - 1);
     uint32_t y_min = clamp_int(floorf(bbmin.y), 0, framebuffer->height - 1);
@@ -193,7 +190,9 @@ void draw_triangle(struct framebuffer *framebuffer, const vector4 vertices[],
     uint32_t y_max = clamp_int(floorf(bbmax.y), 0, framebuffer->height - 1);
     for (uint32_t y = y_min; y <= y_max; y++) {
         for (uint32_t x = x_min; x <= x_max; x++) {
-            p = (vector2){{x, y}};
+            vector2 p = (vector2){{x, y}};
+            // The barycentric coordinates of p.
+            float b0, b1, b2;
             b0 = edge_function(v1, v2, p);
             b1 = edge_function(v2, v0, p);
             b2 = edge_function(v0, v1, p);
@@ -203,20 +202,36 @@ void draw_triangle(struct framebuffer *framebuffer, const vector4 vertices[],
                 b2 /= area;
 
                 // Depth test.
-                depth_p = b0 * vertex_array[0].z + b1 * vertex_array[1].z +
-                          b2 * vertex_array[2].z;
+                float depth_p = b0 * vertex_array[0].z +
+                                b1 * vertex_array[1].z + b2 * vertex_array[2].z;
                 float *depth = get_depth(framebuffer, x, y);
                 if (depth_p > *depth) {
                     continue;
                 }
                 *depth = depth_p;
 
-                color_p.r =
-                    b0 * colors[0].r + b1 * colors[1].r + b2 * colors[2].r;
-                color_p.g =
-                    b0 * colors[0].g + b1 * colors[1].g + b2 * colors[2].g;
-                color_p.b =
-                    b0 * colors[0].b + b1 * colors[1].b + b2 * colors[2].b;
+                // Get diffuse color.
+                vector4 diffuse_color_p;
+                if (diffuse_texture != NULL) {
+                    vector2 uv_p;
+                    uv_p.u = b0 * texture_coordinates[0].u +
+                             b1 * texture_coordinates[1].u +
+                             b2 * texture_coordinates[2].u;
+                    uv_p.v = b0 * texture_coordinates[0].v +
+                             b1 * texture_coordinates[1].v +
+                             b2 * texture_coordinates[2].v;
+                    texture_sample(&diffuse_color_p, diffuse_texture, uv_p);
+                } else {
+                    diffuse_color_p = VECTOR4_ONE;
+                }
+
+                float intensity_p = b0 * intensities[0] + b1 * intensities[1] +
+                                    b2 * intensities[2];
+
+                vector3 color_p;
+                color_p.r = diffuse_color_p.r * intensity_p;
+                color_p.g = diffuse_color_p.g * intensity_p;
+                color_p.b = diffuse_color_p.b * intensity_p;
                 uint8_t *pixel = get_pixel(framebuffer, x, y);
                 pixel[0] = color_p.r * 0xFF;
                 pixel[1] = color_p.g * 0xFF;

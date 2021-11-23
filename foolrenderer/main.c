@@ -20,6 +20,7 @@
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
 
+#include <cwalk.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -31,6 +32,7 @@
 #include "math/matrix.h"
 #include "math/vector.h"
 #include "mesh.h"
+#include "texture.h"
 
 #define IMAGE_WIDTH 512
 #define IMAGE_HEIGHT 512
@@ -47,24 +49,49 @@ static void endian_inversion(uint8_t *bytes, size_t size) {
     }
 }
 
-int main(int argc, char *argv[]) {
-    if (argc < 2) {
-        printf("Needs input .obj file name.\n");
-        return 0;
+static struct texture *load_diffuse_texture(struct mesh *mesh) {
+    const char *diffuse_texture_name = mesh_get_diffuse_texture_name(mesh);
+    if (strlen(diffuse_texture_name) == 0) {
+        return NULL;
     }
-    // Load .obj data.
-    struct mesh *mesh;
-    mesh = mesh_load(argv[1]);
-    if (mesh == NULL) {
-        printf("Cannot load .obj file.\n");
-        return 0;
+    const char *directory_name = mesh_get_directory_name(mesh);
+    size_t image_name_length =
+        strlen(directory_name) + strlen(diffuse_texture_name) + 2;
+    char image_name[image_name_length];
+    cwk_path_join(directory_name, diffuse_texture_name, image_name,
+                  image_name_length);
+
+    uint8_t *image_data;
+    tga_info *image_info;
+    enum tga_error error_code;
+    error_code = tga_load(&image_data, &image_info, image_name);
+    if (error_code != TGA_NO_ERROR) {
+        return NULL;
     }
-    uint32_t triangle_count = mesh_triangle_count(mesh);
+    tga_image_flip_v(image_data, image_info);
 
-    // Create framebuffer.
-    struct framebuffer *framebuffer;
-    framebuffer = generate_framebuffer(IMAGE_WIDTH, IMAGE_HEIGHT);
+    struct texture *diffuse_texture = NULL;
+    if (tga_get_pixel_format(image_info) == TGA_PIXEL_RGB24) {
+        uint32_t width = tga_get_image_width(image_info);
+        uint32_t height = tga_get_image_height(image_info);
+        // Convert all pixels to big endian.
+        uint8_t *pixel;
+        for (uint32_t y = 0; y < height; y++) {
+            for (uint32_t x = 0; x < width; x++) {
+                pixel = tga_get_pixel(image_data, image_info, x, y);
+                endian_inversion(pixel, 3);
+            }
+        }
+        diffuse_texture = generate_texture(width, height, image_data);
+    }
 
+    tga_free_data(image_data);
+    tga_free_info(image_info);
+    return diffuse_texture;
+}
+
+static void draw_model(struct framebuffer *framebuffer, struct mesh *mesh) {
+    set_viewport(0, 0, IMAGE_WIDTH, IMAGE_HEIGHT);
     // For shading, use the direction opposite to the direction of the parallel
     // light.
     vector3 light_direction = {{0.0f, 0.0f, 1.0f}};
@@ -76,30 +103,34 @@ int main(int argc, char *argv[]) {
     matrix4x4 transform_matrix =
         matrix4x4_multiply(projection_matrix, view_matrix);
 
-    // Draw the model.
-    set_viewport(0, 0, IMAGE_WIDTH, IMAGE_HEIGHT);
-    vector3 colors[3];
-    vector4 triangle_vertices[3];
+    struct texture *diffuse_texture = load_diffuse_texture(mesh);
+    uint32_t triangle_count = mesh_triangle_count(mesh);
+    float intensities[3];
+    vector4 vertex_positions[3];
+    vector2 texture_coordinates[3];
     for (size_t t = 0; t < triangle_count; t++) {
-        vector3 vertices[3];
-        mesh_get_vertex_positions(vertices, mesh, t);
+        mesh_get_texture_coordinates(texture_coordinates, mesh, t);
+        vector3 positions[3];
+        mesh_get_vertex_positions(positions, mesh, t);
         vector3 normals[3];
         mesh_get_normals(normals, mesh, t);
         for (int i = 0; i < 3; i++) {
             // Gouraud shading.
             float intensity =
                 clamp01_float(vector3_dot(normals[i], light_direction));
-            colors[i].x = intensity;
-            colors[i].y = intensity;
-            colors[i].z = intensity;
-            // Transform vertices to clip space.
-            triangle_vertices[i] = vector3_to_4(vertices[i], 1);
-            triangle_vertices[i] = matrix4x4_multiply_vector4(
-                transform_matrix, triangle_vertices[i]);
+            intensities[i] = intensity;
+            // Transform positions to clip space.
+            vertex_positions[i] = vector3_to_4(positions[i], 1);
+            vertex_positions[i] = matrix4x4_multiply_vector4(
+                transform_matrix, vertex_positions[i]);
         }
-        draw_triangle(framebuffer, triangle_vertices, colors);
+        draw_triangle(framebuffer, vertex_positions, texture_coordinates,
+                      diffuse_texture, intensities);
     }
+    delete_texture(diffuse_texture);
+}
 
+static void save_framebuffer(const struct framebuffer *framebuffer) {
     // Copy the color buffer data to the TGA image.
     uint8_t *tga_data;
     tga_info *tga_info;
@@ -124,6 +155,27 @@ int main(int argc, char *argv[]) {
 
     tga_free_data(tga_data);
     tga_free_info(tga_info);
+}
+
+int main(int argc, char *argv[]) {
+    if (argc < 2) {
+        printf("Needs input .obj file name.\n");
+        return 0;
+    }
+    // Load .obj data.
+    struct mesh *mesh;
+    mesh = mesh_load(argv[1]);
+    if (mesh == NULL) {
+        printf("Cannot load .obj file.\n");
+        return 0;
+    }
+    // Create framebuffer.
+    struct framebuffer *framebuffer;
+    framebuffer = generate_framebuffer(IMAGE_WIDTH, IMAGE_HEIGHT);
+
+    draw_model(framebuffer, mesh);
+    save_framebuffer(framebuffer);
+
     delete_framebuffer(framebuffer);
     mesh_free(mesh);
     return 0;

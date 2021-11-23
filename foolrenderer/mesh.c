@@ -39,6 +39,7 @@ struct mesh {
     tinyobj_attrib_t attribute;
     tinyobj_shape_t *shapes;
     tinyobj_material_t *materials;
+    char *directory_name;
     size_t shape_count;
     size_t material_count;
 };
@@ -125,6 +126,18 @@ struct mesh *mesh_load(const char *file_name) {
         return NULL;
     }
 
+    size_t directory_name_length;
+    cwk_path_get_dirname(file_name, &directory_name_length);
+    mesh->directory_name = (char *)malloc(directory_name_length + 1);
+    if (mesh->directory_name == NULL) {
+        free(mesh);
+        return NULL;
+    }
+    if (directory_name_length > 0) {
+        strncpy(mesh->directory_name, file_name, directory_name_length);
+    }
+    mesh->directory_name[directory_name_length] = '\0';
+
     void *context;
     int result =
         tinyobj_parse_obj(&mesh->attribute, &mesh->shapes, &mesh->shape_count,
@@ -133,6 +146,7 @@ struct mesh *mesh_load(const char *file_name) {
     // The file parsing is complete, release the file data.
     free(context);
     if (result != TINYOBJ_SUCCESS) {
+        free(mesh->directory_name);
         free(mesh);
         return NULL;
     }
@@ -144,6 +158,7 @@ void mesh_free(struct mesh *mesh) {
         tinyobj_attrib_free(&mesh->attribute);
         tinyobj_shapes_free(mesh->shapes, mesh->shape_count);
         tinyobj_materials_free(mesh->materials, mesh->material_count);
+        free(mesh->directory_name);
         free(mesh);
     }
 }
@@ -243,4 +258,17 @@ bool mesh_get_normals(vector3 normals[], const struct mesh *mesh,
         normals[2] = normals[0];
     }
     return true;
+}
+
+const char *mesh_get_directory_name(const struct mesh *mesh) {
+    return mesh->directory_name;
+}
+
+const char *mesh_get_diffuse_texture_name(const struct mesh *mesh) {
+    if (mesh->material_count > 0) {
+        tinyobj_material_t *material = mesh->materials;
+        return material->diffuse_texname;
+    } else {
+        return "";
+    }
 }

@@ -26,6 +26,7 @@
 #include <stdint.h>
 
 #include "math/vector.h"
+#include "texture.h"
 
 ///
 /// \brief A framebuffer is a collection of buffers that can be used as the
@@ -84,18 +85,27 @@ void set_viewport(int left, int bottom, uint32_t width, uint32_t height);
 ///
 /// \brief Draws the triangle to the framebuffer.
 ///
-/// The vertices of the triangle in clip space. And triangles defined with
-/// counterclockwise winding are treated as front-facing triangles. This
+/// The vertex positions of the triangle in clip space. And triangles defined
+/// with counterclockwise winding are treated as front-facing triangles. This
 /// function only draws front-facing triangles.
 ///
 /// The clip space follow OpenGL convention, uses a left-handed coordinate
 /// system, near plane is at z=-1, and far plane is at z=1.
 ///
-/// \param framebuffer The framebuffer which the triangle is drawn.
-/// \param vertices The vertices of the triangle in clip space.
-/// \param colors The vertex colors of the triangle.
+/// If the diffuse texture is a NULL pointer, the function uses white as the
+/// diffuse color by default.
 ///
-void draw_triangle(struct framebuffer *framebuffer, const vector4 vertices[],
-                   const vector3 colors[]);
+/// \param framebuffer The framebuffer which the triangle is drawn.
+/// \param vertex_positions The vertex positions of the triangle in clip space.
+/// \param texture_coordinates The texture coordinates of the triangle.
+/// \param diffuse_texture The diffuse texture map.
+/// \param intensities The light intensity of the three vertices of the
+///                    triangle.
+///
+void draw_triangle(struct framebuffer *framebuffer,
+                   const vector4 vertex_positions[],
+                   const vector2 texture_coordinates[],
+                   const struct texture *diffuse_texture,
+                   const float intensities[]);
 
 #endif  // FOOLRENDERER_GRAPHICS_H_
