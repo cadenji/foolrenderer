@@ -92,10 +92,9 @@ static struct texture *load_diffuse_texture(struct mesh *mesh) {
 
 static void draw_model(struct framebuffer *framebuffer, struct mesh *mesh) {
     set_viewport(0, 0, IMAGE_WIDTH, IMAGE_HEIGHT);
-    // For shading, use the direction opposite to the direction of the parallel
-    // light.
-    vector3 light_direction = {{0.0f, 0.0f, 1.0f}};
-    matrix4x4 view_matrix = matrix4x4_look_at((vector3){{1.0f, 1.0f, 3.0f}},
+    vector3 ambient = {{0.3f, 0.3f, 0.3f}};
+    vector3 world_light = {{0.0f, 0.0f, 1.0f}};
+    matrix4x4 view_matrix = matrix4x4_look_at((vector3){{1.0f, 1.5f, 2.5f}},
                                               (vector3){{0.0f, 0.0f, 0.0f}},
                                               (vector3){{0.0f, 1.0f, 0.0f}});
     matrix4x4 projection_matrix = matrix4x4_perspective(
@@ -116,9 +115,9 @@ static void draw_model(struct framebuffer *framebuffer, struct mesh *mesh) {
         mesh_get_normals(normals, mesh, t);
         for (int i = 0; i < 3; i++) {
             // Gouraud shading.
-            float intensity =
-                clamp01_float(vector3_dot(normals[i], light_direction));
-            intensities[i] = intensity;
+            float intensity = vector3_dot(normals[i], world_light);
+            intensities[i] = intensity + ambient.elements[i];
+            intensities[i] = clamp01_float(intensities[i]);
             // Transform positions to clip space.
             vertex_positions[i] = vector3_to_4(positions[i], 1);
             vertex_positions[i] = matrix4x4_multiply_vector4(
@@ -158,13 +157,15 @@ static void save_framebuffer(const struct framebuffer *framebuffer) {
 }
 
 int main(int argc, char *argv[]) {
+    char *model_name;
     if (argc < 2) {
-        printf("Needs input .obj file name.\n");
-        return 0;
+        model_name = "assets/test_cube/test_cube.obj";
+    } else {
+        model_name = argv[1];
     }
     // Load .obj data.
     struct mesh *mesh;
-    mesh = mesh_load(argv[1]);
+    mesh = mesh_load(model_name);
     if (mesh == NULL) {
         printf("Cannot load .obj file.\n");
         return 0;

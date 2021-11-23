@@ -1,0 +1,13 @@
+# Blender MTL File: 'test_cube.blend'
+# Material Count: 1
+
+newmtl default
+Ns 323.999994
+Ka 0.200000 0.200000 0.200000
+Kd 0.800000 0.800000 0.800000
+Ks 0.500000 0.500000 0.500000
+Ke 0.000000 0.000000 0.000000
+Ni 1.450000
+d 1.000000
+illum 2
+map_Kd test_cube_diffuse.tga

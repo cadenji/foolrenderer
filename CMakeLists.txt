@@ -25,6 +25,9 @@ target_include_directories(${PROJECT_NAME}
     PRIVATE ${PROJECT_SOURCE_DIR}/foolrenderer
 )
 
+# Copy the assets to binary folder.
+file(COPY assets DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+
 # Add external libraries
 add_subdirectory(external/tgafunc)
 
