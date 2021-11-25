@@ -38,15 +38,15 @@ static struct {
     uint32_t width, height;
 } viewport = {0};
 
-// The vertices should be in clip space.
+// The vertex positions should be in clip space.
 // Return true if the triangle needs to be discarded, otherwise returns false.
 // This is just a rough method, if at least one vertex is outside the viewing
 // volume, the entire triangle will be discarded.
-static bool clipping_test(const vector4 vertices[]) {
+static bool clipping_test(const vector4 positions[]) {
     for (int v = 0; v < 3; v++) {
-        float w = vertices[v].w;
+        float w = positions[v].w;
         for (int c = 0; c < 3; c++) {
-            float component = vertices[v].elements[c];
+            float component = positions[v].elements[c];
             if (component < -w || component > w) {
                 return true;
             }
@@ -55,23 +55,25 @@ static bool clipping_test(const vector4 vertices[]) {
     return false;
 }
 
-// Transform vertex from clipping space to normalized device coordinates (NDC).
-static inline void perspective_division(vector3 *vertex_ndc,
-                                        const vector4 *vertex_clip) {
-    float w = vertex_clip->w;
-    vertex_ndc->x = vertex_clip->x / w;
-    vertex_ndc->y = vertex_clip->y / w;
-    vertex_ndc->z = vertex_clip->z / w;
+// Transform vertex position from clipping space to normalized device
+// coordinates (NDC). The ndc_position.w component becomes 1/clip_position.w,
+// which is used for perspective correct interpolation.
+static inline void perspective_division(vector4 *ndc_position,
+                                        const vector4 *clip_position) {
+    ndc_position->w = 1.0f / clip_position->w;
+    ndc_position->x = clip_position->x * ndc_position->w;
+    ndc_position->y = clip_position->y * ndc_position->w;
+    ndc_position->z = clip_position->z * ndc_position->w;
 }
 
-// Transforms the vertex from NDC to window space.
-static inline void viewport_transform(vector3 *vertex_window,
-                                      const vector3 *vertex_ndc) {
-    vertex_window->x =
-        (vertex_ndc->x + 1.0f) * 0.5f * viewport.width + viewport.left;
-    vertex_window->y =
-        (vertex_ndc->y + 1.0f) * 0.5f * viewport.height + viewport.bottom;
-    vertex_window->z = (vertex_ndc->z + 1.0f) * 0.5f;
+// Transform the x and y components of position from the clipping space to the
+// window space, transform the value range of the z component from [-1, 1] to
+// [0, 1].
+static inline void viewport_transform(vector4 *position) {
+    position->x = (position->x + 1.0f) * 0.5f * viewport.width + viewport.left;
+    position->y =
+        (position->y + 1.0f) * 0.5f * viewport.height + viewport.bottom;
+    position->z = (position->z + 1.0f) * 0.5f;
 }
 
 // Computes the determinant of a 2x2 matrix composed of vectors (c-a) and (b-a).
@@ -80,6 +82,41 @@ static inline void viewport_transform(vector3 *vertex_window,
 // determine the left-right relationship between the two vectors.
 static inline float edge_function(vector2 a, vector2 b, vector2 c) {
     return (c.x - a.x) * (b.y - a.y) - (c.y - a.y) * (b.x - a.x);
+}
+
+// For depth interpolation, refer to the OpenGL specification section 3.6.1
+// equation 3.10:
+// https://www.khronos.org/registry/OpenGL/specs/gl/glspec33.core.pdf
+// For the purpose of reducing computational overhead, the calculated depth
+// value is in the window space, and the depth value in this space is not
+// linear. Although it is enough for depth testing.
+static inline float interpolate_depth(const vector4 positions[],
+                                      const float barycentric[]) {
+    return barycentric[0] * positions[0].z + barycentric[1] * positions[1].z +
+           barycentric[2] * positions[2].z;
+}
+
+// For the principle of perspective correct interpolation vertex attributes,
+// refer to:
+// https://www.comp.nus.edu.sg/~lowkl/publications/lowk_persp_interp_techrep.pdf
+// The OpenGL specification section 3.6.1 provides the same calculation method,
+// refer to equation 3.9:
+// https://www.khronos.org/registry/OpenGL/specs/gl/glspec33.core.pdf
+// This interpolation method is suitable for both perspective projection and
+// orthogonal projection.
+static float interpolate_attributes(const float attributes[],
+                                    const float barycentric[],
+                                    const float inverse_w[]) {
+    float b_inverse_w[3];
+    for (int i = 0; i < 3; i++) {
+        b_inverse_w[i] = barycentric[i] * inverse_w[i];
+    }
+    float inverse_denominator =
+        1 / (b_inverse_w[0] + b_inverse_w[1] + b_inverse_w[2]);
+    float numerator = attributes[0] * b_inverse_w[0] +
+                      attributes[1] * b_inverse_w[1] +
+                      attributes[2] * b_inverse_w[2];
+    return numerator * inverse_denominator;
 }
 
 static inline uint8_t *get_pixel(struct framebuffer *framebuffer, uint32_t x,
@@ -153,33 +190,36 @@ void draw_triangle(struct framebuffer *framebuffer,
     if (clipping_test(vertex_positions)) {
         return;
     }
-    vector3 vertex_array[3];
-    for (int i = 0; i < 3; i++) {
-        perspective_division(vertex_array + i, vertex_positions + i);
-        viewport_transform(vertex_array + i, vertex_array + i);
-    }
-    // Construct the bounding box of the triangle.
+    vector4 positions[3];
     vector2 bbmin = {{FLT_MAX, FLT_MAX}}, bbmax = {{FLT_MIN, FLT_MIN}};
     for (int i = 0; i < 3; i++) {
-        bbmin.x = min_float(bbmin.x, vertex_array[i].x);
-        bbmin.y = min_float(bbmin.y, vertex_array[i].y);
-        bbmax.x = max_float(bbmax.x, vertex_array[i].x);
-        bbmax.y = max_float(bbmax.y, vertex_array[i].y);
+        perspective_division(positions + i, vertex_positions + i);
+        viewport_transform(positions + i);
+        // Construct the bounding box of the triangle.
+        bbmin.x = min_float(bbmin.x, positions[i].x);
+        bbmin.y = min_float(bbmin.y, positions[i].y);
+        bbmax.x = max_float(bbmax.x, positions[i].x);
+        bbmax.y = max_float(bbmax.y, positions[i].y);
+    }
+    float inverse_w[3];
+    for (int i = 0; i < 3; i++) {
+        inverse_w[i] = positions[i].w;
+    }
+    vector2 positions_2d[3];
+    for (int i = 0; i < 3; i++) {
+        positions_2d[i] = (vector2){{positions[i].x, positions[i].y}};
     }
 
-    // The 2D coordinates of the vertex_array projected on the window.
-    vector2 v0 = vector3_to_2(vertex_array[0]);
-    vector2 v1 = vector3_to_2(vertex_array[1]);
-    vector2 v2 = vector3_to_2(vertex_array[2]);
-
     // Compute the area of the triangle multiplied by 2.
-    float area = edge_function(v0, v1, v2);
+    float area =
+        edge_function(positions_2d[0], positions_2d[1], positions_2d[2]);
     if (area >= 0) {
         // If the area is 0, it means this is a degenerate triangle. If the area
         // is positive, the triangle with clockwise winding.
         // In both cases, the triangle does not need to be drawn.
         return;
     }
+    float inverse_area = 1 / area;
 
     // Traverse find the pixels covered by the triangle. If found, compute the
     // barycentric coordinates of the point in the triangle.
@@ -192,51 +232,58 @@ void draw_triangle(struct framebuffer *framebuffer,
         for (uint32_t x = x_min; x <= x_max; x++) {
             vector2 p = (vector2){{x, y}};
             // The barycentric coordinates of p.
-            float b0, b1, b2;
-            b0 = edge_function(v1, v2, p);
-            b1 = edge_function(v2, v0, p);
-            b2 = edge_function(v0, v1, p);
-            if (b0 <= 0 && b1 <= 0 && b2 <= 0) {
-                b0 /= area;
-                b1 /= area;
-                b2 /= area;
-
-                // Depth test.
-                float depth_p = b0 * vertex_array[0].z +
-                                b1 * vertex_array[1].z + b2 * vertex_array[2].z;
-                float *depth = get_depth(framebuffer, x, y);
-                if (depth_p > *depth) {
-                    continue;
-                }
-                *depth = depth_p;
-
-                // Get diffuse color.
-                vector4 diffuse_color_p;
-                if (diffuse_texture != NULL) {
-                    vector2 uv_p;
-                    uv_p.u = b0 * texture_coordinates[0].u +
-                             b1 * texture_coordinates[1].u +
-                             b2 * texture_coordinates[2].u;
-                    uv_p.v = b0 * texture_coordinates[0].v +
-                             b1 * texture_coordinates[1].v +
-                             b2 * texture_coordinates[2].v;
-                    texture_sample(&diffuse_color_p, diffuse_texture, uv_p);
-                } else {
-                    diffuse_color_p = VECTOR4_ONE;
-                }
-
-                float intensity_p = b0 * intensities[0] + b1 * intensities[1] +
-                                    b2 * intensities[2];
-
-                vector3 color_p;
-                color_p.r = diffuse_color_p.r * intensity_p;
-                color_p.g = diffuse_color_p.g * intensity_p;
-                color_p.b = diffuse_color_p.b * intensity_p;
-                uint8_t *pixel = get_pixel(framebuffer, x, y);
-                pixel[0] = color_p.r * 0xFF;
-                pixel[1] = color_p.g * 0xFF;
-                pixel[2] = color_p.b * 0xFF;
+            float barycentric[3];
+            barycentric[0] = edge_function(positions_2d[1], positions_2d[2], p);
+            barycentric[1] = edge_function(positions_2d[2], positions_2d[0], p);
+            barycentric[2] = edge_function(positions_2d[0], positions_2d[1], p);
+            if (barycentric[0] > 0 || barycentric[1] > 0 ||
+                barycentric[2] > 0) {
+                // If any component of the barycentric coordinates is greater
+                // than 0, it means that the pixel is outside the triangle.
+                continue;
             }
+            // Calculate the barycentric coordinates of point p.
+            barycentric[0] *= inverse_area;
+            barycentric[1] *= inverse_area;
+            barycentric[2] *= inverse_area;
+            // Depth test.
+            float depth = interpolate_depth(positions, barycentric);
+            float *depth_ptr = get_depth(framebuffer, x, y);
+            if (depth > *depth_ptr) {
+                continue;
+            }
+            *depth_ptr = depth;
+            // Shading.
+            float attributes[3];
+            vector4 diffuse_color;
+            if (diffuse_texture != NULL) {
+                vector2 uv;
+                for (int i = 0; i < 3; i++) {
+                    attributes[i] = texture_coordinates[i].u;
+                }
+                uv.u =
+                    interpolate_attributes(attributes, barycentric, inverse_w);
+                for (int i = 0; i < 3; i++) {
+                    attributes[i] = texture_coordinates[i].v;
+                }
+                uv.v =
+                    interpolate_attributes(attributes, barycentric, inverse_w);
+                texture_sample(&diffuse_color, diffuse_texture, uv);
+            } else {
+                diffuse_color = VECTOR4_ONE;
+            }
+
+            float intensity =
+                interpolate_attributes(intensities, barycentric, inverse_w);
+
+            vector3 color_p;
+            color_p.r = diffuse_color.r * intensity;
+            color_p.g = diffuse_color.g * intensity;
+            color_p.b = diffuse_color.b * intensity;
+            uint8_t *pixel = get_pixel(framebuffer, x, y);
+            pixel[0] = color_p.r * 0xFF;
+            pixel[1] = color_p.g * 0xFF;
+            pixel[2] = color_p.b * 0xFF;
         }
     }
 }
