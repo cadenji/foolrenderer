@@ -124,6 +124,15 @@ typedef union vector4 {
 inline vector2 vector3_to_2(vector3 v) { return (vector2){{v.x, v.y}}; }
 
 ///
+/// \brief Constructs a 2D vector from a 3D vector. The 3D vector provides
+///        x and y component values.
+///
+/// \param v Vector to copy from.
+/// \return The constructed 2D vector.
+///
+inline vector2 vector4_to_2(vector4 v) { return (vector2){{v.x, v.y}}; }
+
+///
 /// \brief Constructs a 3D vector from a 2D vector and z value.
 ///
 /// \param v The vector provides x and y component values.
@@ -164,31 +173,31 @@ inline vector2 vector2_add(vector2 v1, vector2 v2) {
     return (vector2){{v1.x + v2.x, v1.y + v2.y}};
 }
 
+inline vector2 vector2_add_scalar(vector2 v, float scalar) {
+    return (vector2){{v.x + scalar, v.y + scalar}};
+}
+
 inline vector2 vector2_subtract(vector2 v1, vector2 v2) {
     return (vector2){{v1.x - v2.x, v1.y - v2.y}};
 }
 
-///
-/// \brief Gets the result of multiplying each component of the 2D vector by a
-///        value.
-///
-/// \param v The multiplied vector.
-/// \param scalar What to multiply each component by.
-/// \return The result of multiplication.
-///
-inline vector2 vector2_multiply(vector2 v, float scalar) {
+inline vector2 vector2_subtract_scalar(vector2 v, float scalar) {
+    return (vector2){{v.x - scalar, v.y - scalar}};
+}
+
+inline vector2 vector2_multiply(vector2 v1, vector2 v2) {
+    return (vector2){{v1.x * v2.x, v1.y * v2.y}};
+}
+
+inline vector2 vector2_multiply_scalar(vector2 v, float scalar) {
     return (vector2){{v.x * scalar, v.y * scalar}};
 }
 
-///
-/// \brief Gets the result of dividing each component of the 2D vector by a
-///        value.
-///
-/// \param v The divided vector.
-/// \param scalar What to divide each component by.
-/// \return The result of division.
-///
-inline vector2 vector2_divide(vector2 v, float scalar) {
+inline vector2 vector2_divide(vector2 v1, vector2 v2) {
+    return (vector2){{v1.x / v2.x, v1.y / v2.y}};
+}
+
+inline vector2 vector2_divide_scalar(vector2 v, float scalar) {
     return (vector2){{v.x / scalar, v.y / scalar}};
 }
 
@@ -232,7 +241,7 @@ inline vector2 vector2_normalize(vector2 v) {
     if (fabsf(square_magnitude - 1.0f) < SMALL_ABSOLUTE_FLOAT) {
         return v;
     }
-    return vector2_divide(v, sqrtf(square_magnitude));
+    return vector2_multiply_scalar(v, 1.0f / sqrtf(square_magnitude));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -245,31 +254,31 @@ inline vector3 vector3_add(vector3 v1, vector3 v2) {
     return (vector3){{v1.x + v2.x, v1.y + v2.y, v1.z + v2.z}};
 }
 
+inline vector3 vector3_add_scalar(vector3 v, float scalar) {
+    return (vector3){{v.x + scalar, v.y + scalar, v.z + scalar}};
+}
+
 inline vector3 vector3_subtract(vector3 v1, vector3 v2) {
     return (vector3){{v1.x - v2.x, v1.y - v2.y, v1.z - v2.z}};
 }
 
-///
-/// \brief Gets the result of multiplying each component of the 3D vector by a
-///        value.
-///
-/// \param v The multiplied vector.
-/// \param scalar What to multiply each component by.
-/// \return The result of multiplication.
-///
-inline vector3 vector3_multiply(vector3 v, float scalar) {
+inline vector3 vector3_subtract_scalar(vector3 v, float scalar) {
+    return (vector3){{v.x - scalar, v.y - scalar, v.z - scalar}};
+}
+
+inline vector3 vector3_multiply(vector3 v1, vector3 v2) {
+    return (vector3){{v1.x * v2.x, v1.y * v2.y, v1.z * v2.z}};
+}
+
+inline vector3 vector3_multiply_scalar(vector3 v, float scalar) {
     return (vector3){{v.x * scalar, v.y * scalar, v.z * scalar}};
 }
 
-///
-/// \brief Gets the result of dividing each component of the 3D vector by a
-///        value.
-///
-/// \param v The divided vector.
-/// \param scalar What to divide each component by.
-/// \return The result of division.
-///
-inline vector3 vector3_divide(vector3 v, float scalar) {
+inline vector3 vector3_divide(vector3 v1, vector3 v2) {
+    return (vector3){{v1.x / v2.x, v1.y / v2.y, v1.z / v2.z}};
+}
+
+inline vector3 vector3_divide_scalar(vector3 v, float scalar) {
     return (vector3){{v.x / scalar, v.y / scalar, v.z / scalar}};
 }
 
@@ -321,7 +330,7 @@ inline vector3 vector3_normalize(vector3 v) {
     if (fabsf(square_magnitude - 1.0f) < SMALL_ABSOLUTE_FLOAT) {
         return v;
     }
-    return vector3_divide(v, sqrtf(square_magnitude));
+    return vector3_multiply_scalar(v, 1.0f / sqrtf(square_magnitude));
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -334,31 +343,31 @@ inline vector4 vector4_add(vector4 v1, vector4 v2) {
     return (vector4){{v1.x + v2.x, v1.y + v2.y, v1.z + v2.z, v1.w + v2.w}};
 }
 
+inline vector4 vector4_add_scalar(vector4 v, float scalar) {
+    return (vector4){{v.x + scalar, v.y + scalar, v.z + scalar, v.w + scalar}};
+}
+
 inline vector4 vector4_subtract(vector4 v1, vector4 v2) {
     return (vector4){{v1.x - v2.x, v1.y - v2.y, v1.z - v2.z, v1.w - v2.w}};
 }
 
-///
-/// \brief Gets the result of multiplying each component of the 4D vector by a
-///        value.
-///
-/// \param v The multiplied vector.
-/// \param scalar What to multiply each component by.
-/// \return The result of multiplication.
-///
-inline vector4 vector4_multiply(vector4 v, float scalar) {
+inline vector4 vector4_subtract_scalar(vector4 v, float scalar) {
+    return (vector4){{v.x - scalar, v.y - scalar, v.z - scalar, v.w - scalar}};
+}
+
+inline vector4 vector4_multiply(vector4 v1, vector4 v2) {
+    return (vector4){{v1.x * v2.x, v1.y * v2.y, v1.z * v2.z, v1.w * v2.z}};
+}
+
+inline vector4 vector4_multiply_scalar(vector4 v, float scalar) {
     return (vector4){{v.x * scalar, v.y * scalar, v.z * scalar, v.w * scalar}};
 }
 
-///
-/// \brief Gets the result of dividing each component of the 4D vector by a
-///        value.
-///
-/// \param v The divided vector.
-/// \param scalar What to divide each component by.
-/// \return The result of division.
-///
-inline vector4 vector4_divide(vector4 v, float scalar) {
+inline vector4 vector4_divide(vector4 v1, vector4 v2) {
+    return (vector4){{v1.x / v2.x, v1.y / v2.y, v1.z / v2.z, v1.w / v2.w}};
+}
+
+inline vector4 vector4_divide_scalar(vector4 v, float scalar) {
     return (vector4){{v.x / scalar, v.y / scalar, v.z / scalar, v.w / scalar}};
 }
 
