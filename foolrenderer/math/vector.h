@@ -150,7 +150,7 @@ inline vector3 vector2_to_3(vector2 v, float z) {
 /// \param v Vector to copy from.
 /// \return The constructed 3D vector.
 ///
-inline vector3 vecotr4_to_3(vector4 v) { return (vector3){{v.x, v.y, v.z}}; }
+inline vector3 vector4_to_3(vector4 v) { return (vector3){{v.x, v.y, v.z}}; }
 
 ///
 /// \brief Constructs a 4D vector from a 3D vector and w value.

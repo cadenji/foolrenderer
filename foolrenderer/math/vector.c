@@ -28,7 +28,7 @@ extern vector2 vector4_to_2(vector4 v);
 
 extern vector3 vector2_to_3(vector2 v, float z);
 
-extern vector3 vecotr4_to_3(vector4 v);
+extern vector3 vector4_to_3(vector4 v);
 
 extern vector4 vector3_to_4(vector3 v, float w);
 
