@@ -37,56 +37,61 @@ void mesh_free(struct mesh *mesh);
 uint32_t mesh_triangle_count(const struct mesh *mesh);
 
 ///
-/// \brief Gets the vertex positions of a triangle in the mesh.
+/// \brief Gets the position of a vertex in the mesh.
 ///
-/// If the triangle index value exceeds the range, do nothing.
+/// If the triangle or vertex index exceeds the range, does nothing.
 ///
-/// \param positions The array of vertex positions to be saved, the length is 3.
+/// \param position The vertex position to be saved.
 /// \param mesh The mesh object.
 /// \param triangle_index The index of the triangle, ranging from 0 to
 ///                       triangle_count-1.
+/// \param vertex_index The index of the vertex in the triangle, ranging from 0
+///                     to 2.
 /// \return Returns true if gets positions successful. Returns false if the
-///         triangle index value exceeds the range.
+///         triangle or vertex index exceeds the range.
 ///
-bool mesh_get_vertex_positions(vector3 positions[], const struct mesh *mesh,
-                               uint32_t triangle_index);
+bool mesh_get_vertex_position(vector3 *position, const struct mesh *mesh,
+                              uint32_t triangle_index, uint32_t vertex_index);
 
 ///
-/// \brief Gets the texture coordinates of the three vertices of a triangle in
-///        the mesh.
+/// \brief Gets the texture coordinates of a vertex in the mesh.
 ///
-/// If the triangle index value exceeds the range or texture coordinates are not
-/// included in the triangle, do nothing.
+/// If the triangle or vertex index exceeds the range or texture coordinates are
+/// not included in the triangle, do nothing.
 ///
-/// \param texture_coordinates The array of texture coordinates to be saved, the
-///                            length is 3.
+/// \param texture_coordinates The texture coordinates to be saved.
 /// \param mesh The mesh object.
 /// \param triangle_index The index of the triangle, ranging from 0 to
 ///                       triangle_count-1.
-/// \return Returns true if successful. Returns false if the triangle index
-///         value exceeds the range or texture coordinates are not included in
+/// \param vertex_index The index of the vertex in the triangle, ranging from 0
+///                     to 2.
+/// \return Returns true if successful. Returns false if the triangle or vertex
+///         index exceeds the range or texture coordinates are not included in
 ///         the triangle.
 ///
-bool mesh_get_texture_coordinates(vector2 texture_coordinates[],
+bool mesh_get_texture_coordinates(vector2 *texture_coordinates,
                                   const struct mesh *mesh,
-                                  uint32_t triangle_index);
+                                  uint32_t triangle_index,
+                                  uint32_t vertex_index);
 
 ///
-/// \brief Gets the normals of the three vertices of a triangle in the mesh.
+/// \brief Gets the normal of a vertex in the mesh.
 //
-/// If the triangle index value exceeds the range, do nothing. If the index
-/// value is valid and the mesh itself does not contain normal data, the normal
-/// will be calculated based on the vertex position.
+/// If the triangle or vertex index exceeds the range, do nothing. If the index
+/// is valid and the mesh itself does not contain normal data, the normal will
+/// be calculated based on the vertex position.
 ///
-/// \param normals The array of normals to be saved, the length is 3.
+/// \param normal The normal to be saved.
 /// \param mesh The mesh object.
 /// \param triangle_index The index of the triangle, ranging from 0 to
 ///                       triangle_count-1.
-/// \return Returns true if successful. Returns false if the triangle index
-///         value exceeds the range.
+/// \param vertex_index The index of the vertex in the triangle, ranging from 0
+///                     to 2.
+/// \return Returns true if successful. Returns false if the triangle or vertex
+///         index exceeds the range.
 ///
-bool mesh_get_normals(vector3 normals[], const struct mesh *mesh,
-                      uint32_t triangle_index);
+bool mesh_get_normal(vector3 *normal, const struct mesh *mesh,
+                     uint32_t triangle_index, uint32_t vertex_index);
 
 ///
 /// \brief Gets the directory where the model file is located when the mesh is

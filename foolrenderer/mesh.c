@@ -167,8 +167,8 @@ uint32_t mesh_triangle_count(const struct mesh *mesh) {
     return (uint32_t)mesh->attribute.num_face_num_verts;
 }
 
-bool mesh_get_vertex_positions(vector3 positions[], const struct mesh *mesh,
-                               uint32_t triangle_index) {
+bool mesh_get_vertex_position(vector3 *position, const struct mesh *mesh,
+                              uint32_t triangle_index, uint32_t vertex_index) {
     uint32_t triangle_count = mesh_triangle_count(mesh);
     if (triangle_index >= triangle_count) {
         return false;
@@ -176,20 +176,19 @@ bool mesh_get_vertex_positions(vector3 positions[], const struct mesh *mesh,
 
     const tinyobj_attrib_t *attribute = &mesh->attribute;
     uint32_t offset = triangle_index * 3;
-    for (uint32_t v = 0; v < 3; v++) {
-        const tinyobj_vertex_index_t *tinyobj_index =
-            attribute->faces + offset + v;
-        int vertex_index = tinyobj_index->v_idx * 3;
-        positions[v].x = attribute->vertices[vertex_index];
-        positions[v].y = attribute->vertices[vertex_index + 1];
-        positions[v].z = attribute->vertices[vertex_index + 2];
-    }
+    const tinyobj_vertex_index_t *tinyobj_index =
+        attribute->faces + offset + vertex_index;
+    int index = tinyobj_index->v_idx * 3;
+    position->x = attribute->vertices[index];
+    position->y = attribute->vertices[index + 1];
+    position->z = attribute->vertices[index + 2];
     return true;
 }
 
-bool mesh_get_texture_coordinates(vector2 texture_coordinates[],
+bool mesh_get_texture_coordinates(vector2 *texture_coordinates,
                                   const struct mesh *mesh,
-                                  uint32_t triangle_index) {
+                                  uint32_t triangle_index,
+                                  uint32_t vertex_index) {
     uint32_t triangle_count = mesh_triangle_count(mesh);
     if (triangle_index >= triangle_count) {
         return false;
@@ -201,24 +200,19 @@ bool mesh_get_texture_coordinates(vector2 texture_coordinates[],
     }
 
     uint32_t offset = triangle_index * 3;
-    const tinyobj_vertex_index_t *tinyobj_indexes[3] = {
-        attribute->faces + offset, attribute->faces + offset + 1,
-        attribute->faces + offset + 2};
-    if (tinyobj_indexes[0]->vt_idx < 0 || tinyobj_indexes[1]->vt_idx < 0 ||
-        tinyobj_indexes[2]->vt_idx < 0) {
+    const tinyobj_vertex_index_t *tinyobj_index =
+        attribute->faces + offset + vertex_index;
+    if (tinyobj_index->vt_idx < 0) {
         return false;
     }
-
-    for (size_t v = 0; v < 3; v++) {
-        int texcoord_index = tinyobj_indexes[v]->vt_idx * 2;
-        texture_coordinates[v].x = attribute->texcoords[texcoord_index];
-        texture_coordinates[v].y = attribute->texcoords[texcoord_index + 1];
-    }
+    int index = tinyobj_index->vt_idx * 2;
+    texture_coordinates->x = attribute->texcoords[index];
+    texture_coordinates->y = attribute->texcoords[index + 1];
     return true;
 }
 
-bool mesh_get_normals(vector3 normals[], const struct mesh *mesh,
-                      uint32_t triangle_index) {
+bool mesh_get_normal(vector3 *normal, const struct mesh *mesh,
+                     uint32_t triangle_index, uint32_t vertex_index) {
     uint32_t triangle_count = mesh_triangle_count(mesh);
     if (triangle_index >= triangle_count) {
         return false;
@@ -227,35 +221,30 @@ bool mesh_get_normals(vector3 normals[], const struct mesh *mesh,
     const tinyobj_attrib_t *attribute = &mesh->attribute;
     if (attribute->num_normals > 0) {
         uint32_t offset = triangle_index * 3;
-        const tinyobj_vertex_index_t *tinyobj_indexes[3] = {
-            attribute->faces + offset, attribute->faces + offset + 1,
-            attribute->faces + offset + 2};
-
-        if (tinyobj_indexes[0]->vn_idx >= 0 &&
-            tinyobj_indexes[1]->vn_idx >= 0 &&
-            tinyobj_indexes[2]->vn_idx >= 0) {
-            for (uint32_t v = 0; v < 3; v++) {
-                int normal_index = tinyobj_indexes[v]->vn_idx * 3;
-                normals[v].x = attribute->normals[normal_index];
-                normals[v].y = attribute->normals[normal_index + 1];
-                normals[v].z = attribute->normals[normal_index + 2];
-            }
+        const tinyobj_vertex_index_t *tinyobj_index =
+            attribute->faces + offset + vertex_index;
+        if (tinyobj_index->vn_idx >= 0) {
+            int index = tinyobj_index->vn_idx * 3;
+            normal->x = attribute->normals[index];
+            normal->y = attribute->normals[index + 1];
+            normal->z = attribute->normals[index + 2];
         } else {
             // Normal index is not defined for this triangle.
             // Compute normals.
             vector3 positions[3];
-            mesh_get_vertex_positions(positions, mesh, triangle_index);
-            normals[0] = calculate_triangle_normal(positions);
-            normals[1] = normals[0];
-            normals[2] = normals[0];
+            for (uint32_t v = 0; v < 3; v++) {
+                mesh_get_vertex_position(positions + v, mesh, triangle_index,
+                                         v);
+            }
+            *normal = calculate_triangle_normal(positions);
         }
     } else {
         // Compute normals.
         vector3 positions[3];
-        mesh_get_vertex_positions(positions, mesh, triangle_index);
-        normals[0] = calculate_triangle_normal(positions);
-        normals[1] = normals[0];
-        normals[2] = normals[0];
+        for (uint32_t v = 0; v < 3; v++) {
+            mesh_get_vertex_position(positions + v, mesh, triangle_index, v);
+        }
+        *normal = calculate_triangle_normal(positions);
     }
     return true;
 }

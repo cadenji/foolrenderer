@@ -104,15 +104,17 @@ static void draw_model(struct framebuffer *framebuffer, struct mesh *mesh) {
 
     struct texture *diffuse_texture = load_diffuse_texture(mesh);
     uint32_t triangle_count = mesh_triangle_count(mesh);
-    float intensities[3];
-    vector4 vertex_positions[3];
-    vector2 texture_coordinates[3];
     for (size_t t = 0; t < triangle_count; t++) {
-        mesh_get_texture_coordinates(texture_coordinates, mesh, t);
+        float intensities[3];
+        vector4 vertex_positions[3];
+        vector2 texture_coordinates[3];
         vector3 positions[3];
-        mesh_get_vertex_positions(positions, mesh, t);
         vector3 normals[3];
-        mesh_get_normals(normals, mesh, t);
+        for (uint32_t v = 0; v < 3; v++) {
+            mesh_get_vertex_position(positions + v, mesh, t, v);
+            mesh_get_normal(normals + v, mesh, t, v);
+            mesh_get_texture_coordinates(texture_coordinates + v, mesh, t, v);
+        }
         for (int i = 0; i < 3; i++) {
             // Gouraud shading.
             float intensity = vector3_dot(normals[i], world_light);
