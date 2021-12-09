@@ -40,10 +40,14 @@
 /// vertex shader needs to process，such as vertex positions, normal and texture
 /// coordinates.
 ///
-/// The vertex shader returns the clipping space position of the vertex. Any
-/// other output produced needs to be saved in the shader context. These output
-/// values will be interpolated across the face of the rendered triangles, and
-/// the value of each pixel will be passed as input to the fragment shader.
+/// The vertex shader returns the clipping space position of the vertex, the
+/// clipping space should follow the OpenGL convention, using the left-handed
+/// coordinate system, the near plane is at z=-1, and the far plane is at z=1.
+///
+/// Any other output produced needs to be saved in the shader context. These
+/// output values will be interpolated across the face of the rendered
+/// triangles, and the value of each pixel will be passed as input to the
+/// fragment shader.
 ///
 typedef vector4 (*vertex_shader)(struct shader_context *output,
                                  const void *uniform,
@@ -124,9 +128,13 @@ void set_fragment_shader(fragment_shader shader);
 ///
 /// \brief Render triangle.
 ///
-/// Before calling this function, you need to ensure that the rendering state
-/// has been set through the set_viewport(), set_vertex_shader() and
+/// Before calling this function, need to ensure that the rendering state has
+/// been set through the set_viewport(), set_vertex_shader() and
 /// set_fragment_shader() functions.
+///
+/// When the triangle finally appears on the screen after all transformations,
+/// if the vertex connection sequence is counterclockwise, the triangle is
+/// treated as front face. This function only draws front-facing triangles.
 ///
 /// \param framebuffer Buffer for saving rendering results.
 /// \param uniform Contains constants that can be accessed in the vertex shader
