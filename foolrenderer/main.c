@@ -32,6 +32,7 @@
 #include "math/matrix.h"
 #include "math/vector.h"
 #include "mesh.h"
+#include "shaders/basic.h"
 #include "texture.h"
 
 #define IMAGE_WIDTH 512
@@ -92,43 +93,34 @@ static struct texture *load_diffuse_texture(struct mesh *mesh) {
 
 static void draw_model(struct framebuffer *framebuffer, struct mesh *mesh) {
     set_viewport(0, 0, IMAGE_WIDTH, IMAGE_HEIGHT);
-    vector3 ambient = {{0.3f, 0.3f, 0.3f}};
-    vector3 world_light = {{0.0f, 0.0f, 1.0f}};
+    set_vertex_shader(basic_vertex_shader);
+    set_fragment_shader(basic_fragment_shader);
+
+    struct basic_uniform uniform;
     matrix4x4 view_matrix = matrix4x4_look_at((vector3){{1.0f, 1.5f, 2.5f}},
                                               (vector3){{0.0f, 0.0f, 0.0f}},
                                               (vector3){{0.0f, 1.0f, 0.0f}});
     matrix4x4 projection_matrix = matrix4x4_perspective(
         HALF_PI / 2.0f, IMAGE_WIDTH / IMAGE_HEIGHT, 0.1f, 5.0f);
-    matrix4x4 transform_matrix =
-        matrix4x4_multiply(projection_matrix, view_matrix);
+    uniform.mvp = matrix4x4_multiply(projection_matrix, view_matrix);
+    uniform.light_direction = (vector3){{0.0f, 0.0f, 1.0f}};
+    uniform.ambient_color = (vector3){{0.3f, 0.3f, 0.3f}};
+    uniform.diffuse_texture = load_diffuse_texture(mesh);
 
-    struct texture *diffuse_texture = load_diffuse_texture(mesh);
     uint32_t triangle_count = mesh_triangle_count(mesh);
     for (size_t t = 0; t < triangle_count; t++) {
-        float intensities[3];
-        vector4 vertex_positions[3];
-        vector2 texture_coordinates[3];
-        vector3 positions[3];
-        vector3 normals[3];
+        struct basic_vertex_attribute attributes[3];
+        const void * attribute_ptrs[3];
         for (uint32_t v = 0; v < 3; v++) {
-            mesh_get_vertex_position(positions + v, mesh, t, v);
-            mesh_get_normal(normals + v, mesh, t, v);
-            mesh_get_texture_coordinates(texture_coordinates + v, mesh, t, v);
+            mesh_get_vertex_position(&attributes[v].position, mesh, t, v);
+            mesh_get_normal(&attributes[v].normal, mesh, t, v);
+            mesh_get_texture_coordinates(&attributes[v].texcoord, mesh, t, v);
+            attribute_ptrs[v] = attributes + v;
         }
-        for (int i = 0; i < 3; i++) {
-            // Gouraud shading.
-            float intensity = vector3_dot(normals[i], world_light);
-            intensities[i] = intensity + ambient.elements[i];
-            intensities[i] = clamp01_float(intensities[i]);
-            // Transform positions to clip space.
-            vertex_positions[i] = vector3_to_4(positions[i], 1);
-            vertex_positions[i] = matrix4x4_multiply_vector4(
-                transform_matrix, vertex_positions[i]);
-        }
-        draw_triangle(framebuffer, vertex_positions, texture_coordinates,
-                      diffuse_texture, intensities);
+        draw_triangle(framebuffer, &uniform, attribute_ptrs);
     }
-    delete_texture(diffuse_texture);
+
+    delete_texture(uniform.diffuse_texture);
 }
 
 static void save_framebuffer(const struct framebuffer *framebuffer) {
