@@ -159,23 +159,23 @@ static void interpolate_variables(float *result, const float *const sources[],
     }
 }
 
-#define INTERPOLATION_HELPER(type, component_count)                     \
-    do {                                                                \
-        variable_count = vertices[0].context.type##_variable_count;     \
-        for (int8_t i = 0; i < variable_count; i++) {                   \
-            int8_t index = vertices[0].context.type##_index_queue[i];   \
-            variables[0] =                                              \
-                (float *)(vertices[0].context.type##_variables + i);    \
-            variables[1] =                                              \
-                (float *)(vertices[1].context.type##_variables + i);    \
-            variables[2] =                                              \
-                (float *)(vertices[2].context.type##_variables + i);    \
-            float *interpolate_result =                                 \
-                (float *)shader_context_##type(result, index);          \
-            interpolate_variables(interpolate_result, variables,        \
-                                  component_count, inverse_denominator, \
-                                  bc_over_w);                           \
-        }                                                               \
+#define INTERPOLATION_HELPER(type, component_count)                      \
+    do {                                                                 \
+        variable_count = vertices[0].context.type##_variable_count;      \
+        for (int8_t i = 0; i < variable_count; i++) {                    \
+            int8_t index = vertices[0].context.type##_index_queue[i];    \
+            variables[0] =                                               \
+                (float *)(vertices[0].context.type##_variables + index); \
+            variables[1] =                                               \
+                (float *)(vertices[1].context.type##_variables + index); \
+            variables[2] =                                               \
+                (float *)(vertices[2].context.type##_variables + index); \
+            float *interpolate_result =                                  \
+                (float *)shader_context_##type(result, index);           \
+            interpolate_variables(interpolate_result, variables,         \
+                                  component_count, inverse_denominator,  \
+                                  bc_over_w);                            \
+        }                                                                \
     } while (0)
 
 static void set_fragment_shader_input(struct shader_context *result,
