@@ -97,20 +97,34 @@ static void draw_model(struct framebuffer *framebuffer, struct mesh *mesh) {
     set_fragment_shader(basic_fragment_shader);
 
     struct basic_uniform uniform;
-    matrix4x4 view_matrix = matrix4x4_look_at((vector3){{1.0f, 1.5f, 2.5f}},
-                                              (vector3){{0.0f, 0.0f, 0.0f}},
-                                              (vector3){{0.0f, 1.0f, 0.0f}});
-    matrix4x4 projection_matrix = matrix4x4_perspective(
+    // No rotation, scaling, or translation of the model, so the model matrix is
+    // the identity matrix.
+    uniform.modelview = matrix4x4_look_at((vector3){{1.0f, 1.5f, 2.5f}},
+                                          (vector3){{0.0f, 0.0f, 0.0f}},
+                                          (vector3){{0.0f, 1.0f, 0.0f}});
+    uniform.projection = matrix4x4_perspective(
         HALF_PI / 2.0f, IMAGE_WIDTH / IMAGE_HEIGHT, 0.1f, 5.0f);
-    uniform.mvp = matrix4x4_multiply(projection_matrix, view_matrix);
-    uniform.light_direction = (vector3){{0.0f, 0.0f, 1.0f}};
-    uniform.ambient_color = (vector3){{0.3f, 0.3f, 0.3f}};
+    // The normal matrix is the inverse transpose matrix of the original
+    // transformation matrix. And because the modelview matrix is actually the
+    // view matrix, it only contains rotation and translation. So the normal
+    // matrix in the view space is the modelview matrix (The inverse transpose
+    // of the rotation matrix is itself, translation can be ignored).
+    uniform.normal_matrix = uniform.modelview;
+    // The direction of the light in world space.
+    vector3 light_direction = {{0.5f, 0.5f, 1.0f}};
+    vector3_normalize(light_direction);
+    vector4 light_direction_in_view = matrix4x4_multiply_vector4(
+        uniform.modelview, vector3_to_4(light_direction, 0.0f));
+    uniform.light_direction = vector4_to_3(light_direction_in_view);
+    uniform.light_intensity = VECTOR3_ONE;
+    uniform.ambient_intensity = (vector3){{0.02f, 0.02f, 0.02f}};
+    uniform.shininess = 100.0f;
     uniform.diffuse_texture = load_diffuse_texture(mesh);
 
     uint32_t triangle_count = mesh_triangle_count(mesh);
     for (size_t t = 0; t < triangle_count; t++) {
         struct basic_vertex_attribute attributes[3];
-        const void * attribute_ptrs[3];
+        const void *attribute_ptrs[3];
         for (uint32_t v = 0; v < 3; v++) {
             mesh_get_vertex_position(&attributes[v].position, mesh, t, v);
             mesh_get_normal(&attributes[v].normal, mesh, t, v);
@@ -119,7 +133,6 @@ static void draw_model(struct framebuffer *framebuffer, struct mesh *mesh) {
         }
         draw_triangle(framebuffer, &uniform, attribute_ptrs);
     }
-
     delete_texture(uniform.diffuse_texture);
 }
 

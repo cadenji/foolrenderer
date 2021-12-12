@@ -28,10 +28,25 @@
 #include "shader_context.h"
 #include "texture.h"
 
+// The basic shader implements Blinn-Phong reflection model with Phong shading.
+// The lighting calculation is performed in the view space. One advantage of
+// this is that the camera position is always at (0,0,0), and there is no need
+// to provide the camera position to the shader.
+// References:
+// https://en.wikipedia.org/wiki/Blinn%E2%80%93Phong_reflection_model
+// https://en.wikipedia.org/wiki/Phong_shading
+
 struct basic_uniform {
-    matrix4x4 mvp;
+    matrix4x4 modelview;
+    matrix4x4 projection;
+    // A matrix used to transform the normal direction from local space to view
+    // space.
+    matrix4x4 normal_matrix;
+    // Direction of parallel light in view space.
     vector3 light_direction;
-    vector3 ambient_color;
+    vector3 light_intensity;
+    vector3 ambient_intensity;
+    float shininess;
     struct texture *diffuse_texture;
 };
 
