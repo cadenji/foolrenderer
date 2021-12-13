@@ -42,10 +42,16 @@ struct basic_uniform {
     // A matrix used to transform the normal direction from local space to view
     // space.
     matrix4x4 normal_matrix;
-    // Direction of parallel light in view space.
-    vector3 light_direction;
-    vector3 light_intensity;
-    vector3 ambient_intensity;
+
+    // Parameters of the light.
+    vector3 light_direction;  // Direction of directional light in view space
+    vector3 light_color;
+    vector3 ambient_color;
+
+    // Parameters of the material.
+    vector3 ambient_reflectance;
+    vector3 diffuse_reflectance;
+    vector3 specular_reflectance;
     float shininess;
     struct texture *diffuse_texture;
 };

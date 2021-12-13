@@ -62,33 +62,47 @@ vector4 basic_fragment_shader(struct shader_context *input,
     vector3 *in_normal = shader_context_vector3(input, NORMAL);
     vector3 normal = vector3_normalize(*in_normal);
 
-    // Calculate the diffuse color.
+    // Ambient lighting.
+    vector3 ambient_lighting =
+        vector3_multiply(unif->ambient_color, unif->ambient_reflectance);
+
+    // Diffuse lighting.
     float n_dot_l = vector3_dot(normal, unif->light_direction);
+    float diffuse_intensity = max_float(0.0f, n_dot_l);
+    vector3 diffuse_lighting =
+        vector3_multiply_scalar(unif->light_color, diffuse_intensity);
+    diffuse_lighting =
+        vector3_multiply(diffuse_lighting, unif->diffuse_reflectance);
+
+    // Specular lighting.
+    vector3 specular_lighting = VECTOR3_ZERO;
+    if (n_dot_l > 0.0f) {
+        // Because in view space, the camera is at the origin, so the
+        // calculation of
+        // the view direction is simplified.
+        vector3 *postion = shader_context_vector3(input, POSITION);
+        vector3 view_direction = vector3_multiply_scalar(*postion, -1.0f);
+        view_direction = vector3_normalize(view_direction);
+        // Calculate the halfway vector between the light direction and the view
+        // direction.
+        vector3 halfway = vector3_add(view_direction, unif->light_direction);
+        halfway = vector3_normalize(halfway);
+        float n_dot_h = vector3_dot(normal, halfway);
+        float specular_intensity =
+            powf(max_float(0.0f, n_dot_h), unif->shininess);
+        specular_lighting =
+            vector3_multiply_scalar(unif->light_color, specular_intensity);
+        specular_lighting =
+            vector3_multiply(specular_lighting, unif->specular_reflectance);
+    }
+
     vector2 *texcoord = shader_context_vector2(input, TEXCOORD);
     vector4 texture_color = VECTOR4_ONE;
     texture_sample(&texture_color, unif->diffuse_texture, *texcoord);
-    vector3 diffuse_color = vector4_to_3(texture_color);
-    diffuse_color =
-        vector3_multiply_scalar(diffuse_color, max_float(0.0f, n_dot_l));
-    diffuse_color = vector3_multiply(diffuse_color, unif->light_intensity);
 
-    // Because in view space, the camera is at the origin, so the calculation of
-    // the view direction is simplified.
-    vector3 *postion = shader_context_vector3(input, POSITION);
-    vector3 view_direction =
-        vector3_normalize(vector3_multiply_scalar(*postion, -1.0f));
-    // Calculate the halfway vector between the light direction and the view
-    // direction.
-    vector3 halfway =
-        vector3_normalize(vector3_add(view_direction, unif->light_direction));
-    // Calculate the specular color.
-    float n_dot_h = vector3_dot(normal, halfway);
-    float specular_intensity = powf(max_float(0.0f, n_dot_h), unif->shininess);
-    vector3 specular_color =
-        vector3_multiply_scalar(unif->light_intensity, specular_intensity);
-
-    vector3 fragment_color =
-        vector3_add(unif->ambient_intensity, diffuse_color);
-    fragment_color = vector3_add(fragment_color, specular_color);
+    vector3 fragment_color = vector3_add(ambient_lighting, diffuse_lighting);
+    fragment_color =
+        vector3_multiply(fragment_color, vector4_to_3(texture_color));
+    fragment_color = vector3_add(fragment_color, specular_lighting);
     return vector3_to_4(fragment_color, 1.0f);
 }

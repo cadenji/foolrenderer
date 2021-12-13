@@ -116,8 +116,11 @@ static void draw_model(struct framebuffer *framebuffer, struct mesh *mesh) {
     vector4 light_direction_in_view = matrix4x4_multiply_vector4(
         uniform.modelview, vector3_to_4(light_direction, 0.0f));
     uniform.light_direction = vector4_to_3(light_direction_in_view);
-    uniform.light_intensity = VECTOR3_ONE;
-    uniform.ambient_intensity = (vector3){{0.02f, 0.02f, 0.02f}};
+    uniform.light_color = VECTOR3_ONE;
+    uniform.ambient_color = (vector3){{0.1f, 0.1f, 0.1f}};
+    uniform.ambient_reflectance = VECTOR3_ONE;
+    uniform.diffuse_reflectance = VECTOR3_ONE;
+    uniform.specular_reflectance = VECTOR3_ONE;
     uniform.shininess = 100.0f;
     uniform.diffuse_texture = load_diffuse_texture(mesh);
 
