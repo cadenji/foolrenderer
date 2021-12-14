@@ -320,6 +320,7 @@ void draw_triangle(struct framebuffer *framebuffer, const void *uniform,
                 continue;
             }
             struct shader_context input;
+            clear_shader_context(&input);
             set_fragment_shader_input(&input, vertices, bc);
             vector4 fragment_color = fs(&input, uniform);
 

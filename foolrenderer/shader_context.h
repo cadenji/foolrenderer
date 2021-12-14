@@ -67,6 +67,14 @@ struct shader_context {
     int8_t vector4_variable_count;
 };
 
+///
+/// \brief Removes all data from the shader context and also serve as an
+///        initialization function.
+///
+/// It should not be and is not necessary to use this function in the shader.
+///
+/// \param context The shader context object.
+///
 void clear_shader_context(struct shader_context *context);
 
 ///
