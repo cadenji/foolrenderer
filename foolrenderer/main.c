@@ -27,6 +27,7 @@
 #include <string.h>
 #include <tgafunc.h>
 
+#include "framebuffer.h"
 #include "graphics.h"
 #include "math/math_utility.h"
 #include "math/matrix.h"

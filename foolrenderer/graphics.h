@@ -25,6 +25,7 @@
 
 #include <stdint.h>
 
+#include "framebuffer.h"
 #include "math/vector.h"
 #include "shader_context.h"
 #include "texture.h"
@@ -67,46 +68,6 @@ typedef vector4 (*vertex_shader)(struct shader_context *output,
 ///
 typedef vector4 (*fragment_shader)(struct shader_context *input,
                                    const void *uniform);
-
-///
-/// \brief A framebuffer is a collection of buffers that can be used as the
-///        destination for rendering.
-///
-/// The origin (0, 0) of all buffers is in the bottom-left corner.
-///
-struct framebuffer {
-    uint32_t width, height;
-    uint8_t *color_buffer;
-    float *depth_buffer;
-};
-
-///
-/// \brief Creates a framebuffer of the specified dimension.
-///
-/// \param width The framebuffer width in pixel.
-/// \param height The framebuffer height in pixel.
-/// \return Returns the framebuffer pointer if the generation is successful,
-///         otherwise returns NULL.
-///
-struct framebuffer *generate_framebuffer(uint32_t width, uint32_t height);
-
-///
-/// \brief Uses the default value to clear all the buffers in the framebuffer at
-///        one time.
-///
-/// The default value for clearing the color buffer is 0x0, and the default
-/// value for clearing the depth buffer is 1.0f.
-///
-/// \param framebuffer The framebuffer to be cleared.
-///
-void clear_framebuffer(struct framebuffer *framebuffer);
-
-///
-/// \brief Deletes the framebuffer.
-///
-/// \param framebuffer The framebuffer to be deleted.
-///
-void delete_framebuffer(struct framebuffer *framebuffer);
 
 ///
 /// \brief Set the viewport parameters.

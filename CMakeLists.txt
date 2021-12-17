@@ -5,6 +5,7 @@ project(foolrenderer C)
 add_executable(${PROJECT_NAME}
     foolrenderer/main.c
     foolrenderer/mesh.c
+    foolrenderer/framebuffer.c
     foolrenderer/graphics.c
     foolrenderer/texture.c
     foolrenderer/shader_context.c
