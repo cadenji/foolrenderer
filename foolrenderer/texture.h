@@ -28,7 +28,17 @@
 
 #include "math/vector.h"
 
-enum texture_format { TEXTURE_FORMAT_RGBA8 };
+enum texture_format {
+    ///
+    /// The components included in this format are R, G, B, A, and each
+    /// component is an 8-bit unsigned integer type.
+    ///
+    TEXTURE_FORMAT_RGBA8,
+    ///
+    /// The format used to store depth information, the type is float.
+    ///
+    TEXTURE_FORMAT_DEPTH_FLOAT
+};
 
 ///
 /// \brief A texture is an object that saves image pixel data in a specific

@@ -42,6 +42,9 @@ static size_t get_pixel_size(enum texture_format format) {
         case TEXTURE_FORMAT_RGBA8:
             pixel_size = 4;
             break;
+        case TEXTURE_FORMAT_DEPTH_FLOAT:
+            pixel_size = sizeof(float);
+            break;
         default:
             pixel_size = 0;
             break;
@@ -131,21 +134,28 @@ bool texture_sample(vector4 *pixel, const struct texture *texture,
     if (texture == NULL) {
         return false;
     }
+    float u = clamp01_float(texture_coordinate.u);
+    float v = clamp01_float(texture_coordinate.v);
+    uint32_t u_index = (uint32_t)(u * texture->width);
+    uint32_t v_index = (uint32_t)(v * texture->height);
+    // Prevent array access out of bounds.
+    u_index = u_index >= texture->width ? texture->width - 1 : u_index;
+    v_index = v_index >= texture->height ? texture->height - 1 : v_index;
+    size_t pixel_offset = (size_t)u_index + v_index * texture->width;
+
     if (texture->format == TEXTURE_FORMAT_RGBA8) {
-        float u = clamp01_float(texture_coordinate.u);
-        float v = clamp01_float(texture_coordinate.v);
-        uint32_t u_index = (uint32_t)(u * texture->width);
-        uint32_t v_index = (uint32_t)(v * texture->height);
-        // Prevent array access out of bounds.
-        u_index = u_index >= texture->width ? texture->width - 1 : u_index;
-        v_index = v_index >= texture->height ? texture->height - 1 : v_index;
-        size_t pixel_offset = (size_t)u_index + v_index * texture->width;
-        const uint8_t *pixels = texture->pixels;
-        const uint8_t *target = pixels + pixel_offset * 4;
+        const uint8_t *target = (uint8_t *)texture->pixels + pixel_offset * 4;
         pixel->r = target[0] / 255.0f;
         pixel->g = target[1] / 255.0f;
         pixel->b = target[2] / 255.0f;
         pixel->a = target[3] / 255.0f;
+        return true;
+    } else if (texture->format == TEXTURE_FORMAT_DEPTH_FLOAT) {
+        const float *target = (float *)texture->pixels + pixel_offset;
+        pixel->r = *target;
+        pixel->g = *target;
+        pixel->b = *target;
+        pixel->a = 1.0f;
         return true;
     }
     return false;
