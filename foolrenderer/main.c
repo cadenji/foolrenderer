@@ -84,7 +84,10 @@ static struct texture *load_diffuse_texture(struct mesh *mesh) {
                 endian_inversion(pixel, 3);
             }
         }
-        diffuse_texture = generate_texture(width, height, image_data);
+        diffuse_texture = generate_texture(TEXTURE_FORMAT_RGBA8, width, height);
+        if(diffuse_texture != NULL){
+            set_texture_pixels(diffuse_texture, image_data);
+        }
     }
 
     tga_free_data(image_data);
