@@ -55,6 +55,21 @@ static struct {
 static vertex_shader vs = NULL;
 static fragment_shader fs = NULL;
 
+// Framebuffer data.
+static uint32_t framebuffer_width = 0;
+static uint32_t framebuffer_height = 0;
+static uint8_t *color_buffer = NULL;
+static float *depth_buffer = NULL;
+
+static void parse_framebuffer(struct framebuffer *framebuffer) {
+    framebuffer_width = get_framebuffer_width(framebuffer);
+    framebuffer_height = get_framebuffer_height(framebuffer);
+    color_buffer = get_texture_pixels(
+        get_framebuffer_attachment(framebuffer, COLOR_ATTACHMENT));
+    depth_buffer = get_texture_pixels(
+        get_framebuffer_attachment(framebuffer, DEPTH_ATTACHMENT));
+}
+
 // The vertex position should be in clippig space.
 // Returns true if the vertex needs to be clipped, otherwise returns false.
 static bool clipping_test(const struct vertex *vertex) {
@@ -113,8 +128,8 @@ static inline float edge_function(const vector2 *a, const vector2 *b,
 }
 
 // Returns true if the fragment is hidden.
-static inline bool depth_test(struct framebuffer *framebuffer, uint32_t x,
-                              uint32_t y, const struct vertex vertices[],
+static inline bool depth_test(uint32_t x, uint32_t y,
+                              const struct vertex vertices[],
                               const float barycentric[]) {
     // Interpolate depth, for more details refer to the OpenGL specification
     // section 3.6.1 equation 3.10:
@@ -125,8 +140,7 @@ static inline bool depth_test(struct framebuffer *framebuffer, uint32_t x,
     float new_depth = barycentric[0] * vertices[0].depth +
                       barycentric[1] * vertices[1].depth +
                       barycentric[2] * vertices[2].depth;
-    // Get depth from framebuffer.
-    float *depth = framebuffer->depth_buffer + (y * framebuffer->width + x);
+    float *depth = depth_buffer + (y * framebuffer_width + x);
     bool is_hidden = new_depth > *depth;
     if (!is_hidden) {
         *depth = new_depth;
@@ -209,9 +223,10 @@ void set_fragment_shader(fragment_shader shader) { fs = shader; }
 // https://www.scratchapixel.com/lessons/3d-basic-rendering/rasterization-practical-implementation/rasterization-stage
 void draw_triangle(struct framebuffer *framebuffer, const void *uniform,
                    const void *const vertex_attributes[]) {
-    if (vs == NULL || fs == NULL) {
+    if (vs == NULL || fs == NULL || framebuffer == NULL) {
         return;
     }
+    parse_framebuffer(framebuffer);
     struct vertex vertices[3];
     // The bounding box of the triangle.
     struct bounding_box bound = {{{FLT_MAX, FLT_MAX}}, {{FLT_MIN, FLT_MIN}}};
@@ -243,10 +258,10 @@ void draw_triangle(struct framebuffer *framebuffer, const void *uniform,
     // Traverse find the pixels covered by the triangle. If found, compute the
     // barycentric coordinates of the point in the triangle.
     // No need to traverses pixels outside the window.
-    uint32_t x_min = clamp_int(floorf(bound.min.x), 0, framebuffer->width - 1);
-    uint32_t y_min = clamp_int(floorf(bound.min.y), 0, framebuffer->height - 1);
-    uint32_t x_max = clamp_int(floorf(bound.max.x), 0, framebuffer->width - 1);
-    uint32_t y_max = clamp_int(floorf(bound.max.y), 0, framebuffer->height - 1);
+    uint32_t x_min = clamp_int(floorf(bound.min.x), 0, framebuffer_width - 1);
+    uint32_t y_min = clamp_int(floorf(bound.min.y), 0, framebuffer_height - 1);
+    uint32_t x_max = clamp_int(floorf(bound.max.x), 0, framebuffer_width - 1);
+    uint32_t y_max = clamp_int(floorf(bound.max.y), 0, framebuffer_height - 1);
 
     for (uint32_t y = y_min; y <= y_max; y++) {
         for (uint32_t x = x_min; x <= x_max; x++) {
@@ -270,7 +285,7 @@ void draw_triangle(struct framebuffer *framebuffer, const void *uniform,
             bc[1] *= inverse_area;
             bc[2] *= inverse_area;
 
-            if (depth_test(framebuffer, x, y, vertices, bc)) {
+            if (depth_test(x, y, vertices, bc)) {
                 continue;
             }
             struct shader_context input;
@@ -278,11 +293,11 @@ void draw_triangle(struct framebuffer *framebuffer, const void *uniform,
             set_fragment_shader_input(&input, vertices, bc);
             vector4 fragment_color = fs(&input, uniform);
 
-            uint8_t *pixel =
-                framebuffer->color_buffer + (y * framebuffer->width + x) * 3;
+            uint8_t *pixel = color_buffer + (y * framebuffer_width + x) * 4;
             pixel[0] = clamp01_float(fragment_color.r) * 0xFF;
             pixel[1] = clamp01_float(fragment_color.g) * 0xFF;
             pixel[2] = clamp01_float(fragment_color.b) * 0xFF;
+            pixel[3] = clamp01_float(fragment_color.a) * 0xFF;
         }
     }
 }

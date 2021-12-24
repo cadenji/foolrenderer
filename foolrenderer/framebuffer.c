@@ -22,50 +22,145 @@
 
 #include "framebuffer.h"
 
+#include <stdbool.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
-struct framebuffer *generate_framebuffer(uint32_t width, uint32_t height) {
-    size_t buffer_dimension = (size_t)width * height;
-    // Use RGB (3 bytes per pixel) pixel format.
-    size_t color_buffer_size = buffer_dimension * 3;
-    size_t depth_buffer_size = buffer_dimension * sizeof(float);
+#include "texture.h"
 
-    uint8_t *color_buffer = (uint8_t *)malloc(color_buffer_size);
-    float *depth_buffer = (float *)malloc(depth_buffer_size);
-    if (color_buffer == NULL || depth_buffer == NULL) {
-        free(color_buffer);
-        free(depth_buffer);
-        return NULL;
-    }
+#define MIN(a, b) (a < b ? a : b)
+
+struct framebuffer {
+    uint32_t width, height;
+    struct texture *color_buffer;
+    struct texture *depth_buffer;
+};
+
+struct framebuffer *generate_framebuffer(void) {
     struct framebuffer *framebuffer;
-    framebuffer = (struct framebuffer *)malloc(sizeof(struct framebuffer));
+    framebuffer = malloc(sizeof(struct framebuffer));
     if (framebuffer == NULL) {
-        free(color_buffer);
-        free(depth_buffer);
         return NULL;
     }
-
-    framebuffer->width = width;
-    framebuffer->height = height;
-    framebuffer->color_buffer = color_buffer;
-    framebuffer->depth_buffer = depth_buffer;
-    clear_framebuffer(framebuffer);
+    framebuffer->width = 0;
+    framebuffer->height = 0;
+    framebuffer->color_buffer = NULL;
+    framebuffer->depth_buffer = NULL;
     return framebuffer;
 }
 
+void delete_framebuffer(struct framebuffer *framebuffer) { free(framebuffer); }
+
+#define SET_MIN_SIZE(buffer)                                               \
+    do {                                                                   \
+        if (buffer != NULL) {                                              \
+            uint32_t buffer_width = get_texture_width(buffer);             \
+            uint32_t buffer_height = get_texture_height(buffer);           \
+            framebuffer->width = MIN(framebuffer->width, buffer_width);    \
+            framebuffer->height = MIN(framebuffer->height, buffer_height); \
+        }                                                                  \
+    } while (0)
+
+bool attach_texture_to_framebuffer(struct framebuffer *framebuffer,
+                                   enum attachment_type attachment,
+                                   struct texture *texture) {
+    if (framebuffer == NULL) {
+        return false;
+    }
+    bool result = false;
+    if (texture != NULL) {
+        enum texture_format format = get_texture_format(texture);
+        switch (attachment) {
+            case COLOR_ATTACHMENT:
+                if (format == TEXTURE_FORMAT_RGBA8) {
+                    framebuffer->color_buffer = texture;
+                    result = true;
+                }
+                break;
+            case DEPTH_ATTACHMENT:
+                if (format == TEXTURE_FORMAT_DEPTH_FLOAT) {
+                    framebuffer->depth_buffer = texture;
+                    result = true;
+                }
+                break;
+        }
+    } else {
+        switch (attachment) {
+            case COLOR_ATTACHMENT:
+                framebuffer->color_buffer = NULL;
+                result = true;
+                break;
+            case DEPTH_ATTACHMENT:
+                framebuffer->depth_buffer = NULL;
+                result = true;
+                break;
+        }
+    }
+    // Update the framebuffer size.
+    if (result) {
+        if (framebuffer->color_buffer == NULL &&
+            framebuffer->depth_buffer == NULL) {
+            framebuffer->width = 0;
+            framebuffer->height = 0;
+        } else {
+            framebuffer->width = UINT32_MAX;
+            framebuffer->height = UINT32_MAX;
+            SET_MIN_SIZE(framebuffer->color_buffer);
+            SET_MIN_SIZE(framebuffer->depth_buffer);
+        }
+    }
+    return result;
+}
+
 void clear_framebuffer(struct framebuffer *framebuffer) {
-    size_t buffer_dimension = (size_t)framebuffer->width * framebuffer->height;
-    size_t color_buffer_size = buffer_dimension * 3;
-    memset(framebuffer->color_buffer, 0, color_buffer_size);
-    for (size_t i = 0; i < buffer_dimension; i++) {
-        framebuffer->depth_buffer[i] = 1.0f;
+    if (framebuffer == NULL) {
+        return;
+    }
+    struct texture *buffer;
+    size_t pixel_count = (size_t)framebuffer->width * framebuffer->height;
+    // Clear color buffer.
+    buffer = framebuffer->color_buffer;
+    if (buffer != NULL) {
+        void *pixels = get_texture_pixels(buffer);
+        memset(pixels, 0x0, pixel_count * 4);
+    }
+    // Clear depth buffer.
+    buffer = framebuffer->depth_buffer;
+    if (buffer != NULL) {
+        float *pixels = get_texture_pixels(buffer);
+        for (size_t i = 0; i < pixel_count; i++) {
+            pixels[i] = 1.0f;
+        }
     }
 }
 
-void delete_framebuffer(struct framebuffer *framebuffer) {
-    free(framebuffer->color_buffer);
-    free(framebuffer->depth_buffer);
-    free(framebuffer);
+uint32_t get_framebuffer_width(const struct framebuffer *framebuffer) {
+    if (framebuffer == NULL) {
+        return 0;
+    }
+    return framebuffer->width;
+}
+
+uint32_t get_framebuffer_height(const struct framebuffer *framebuffer) {
+    if (framebuffer == NULL) {
+        return 0;
+    }
+    return framebuffer->height;
+}
+
+struct texture *get_framebuffer_attachment(struct framebuffer *framebuffer,
+                                           enum attachment_type attachment) {
+    if (framebuffer == NULL) {
+        return NULL;
+    }
+    switch (attachment) {
+        case COLOR_ATTACHMENT:
+            return framebuffer->color_buffer;
+        case DEPTH_ATTACHMENT:
+            return framebuffer->depth_buffer;
+        default:
+            return NULL;
+    }
 }

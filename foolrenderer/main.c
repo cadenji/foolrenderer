@@ -85,7 +85,7 @@ static struct texture *load_diffuse_texture(struct mesh *mesh) {
             }
         }
         diffuse_texture = generate_texture(TEXTURE_FORMAT_RGBA8, width, height);
-        if(diffuse_texture != NULL){
+        if (diffuse_texture != NULL) {
             set_texture_pixels(diffuse_texture, image_data);
         }
     }
@@ -99,6 +99,7 @@ static void draw_model(struct framebuffer *framebuffer, struct mesh *mesh) {
     set_viewport(0, 0, IMAGE_WIDTH, IMAGE_HEIGHT);
     set_vertex_shader(basic_vertex_shader);
     set_fragment_shader(basic_fragment_shader);
+    clear_framebuffer(framebuffer);
 
     struct basic_uniform uniform;
     // No rotation, scaling, or translation of the model, so the model matrix is
@@ -143,31 +144,38 @@ static void draw_model(struct framebuffer *framebuffer, struct mesh *mesh) {
     delete_texture(uniform.diffuse_texture);
 }
 
-static void save_framebuffer(const struct framebuffer *framebuffer) {
-    // Copy the color buffer data to the TGA image.
-    uint8_t *tga_data;
-    tga_info *tga_info;
-    tga_create(&tga_data, &tga_info, IMAGE_WIDTH, IMAGE_HEIGHT,
+static void save_color_texture(struct texture *texture) {
+    uint32_t texture_width = get_texture_width(texture);
+    uint32_t texture_height = get_texture_height(texture);
+    const uint8_t *texture_data = get_texture_pixels(texture);
+
+    uint8_t *image_data;
+    tga_info *image_info;
+    tga_create(&image_data, &image_info, texture_width, texture_height,
                TGA_PIXEL_RGB24);
-    memcpy(tga_data, framebuffer->color_buffer,
-           (size_t)IMAGE_WIDTH * IMAGE_HEIGHT * 3);
-    // Convert all pixels to little endian and save as TGA format file.
-    uint8_t *pixel;
-    for (int y = 0; y < IMAGE_WIDTH; y++) {
-        for (int x = 0; x < IMAGE_HEIGHT; x++) {
-            pixel = tga_get_pixel(tga_data, tga_info, x, y);
-            endian_inversion(pixel, 3);
+
+    // Copy the color buffer data to the TGA image.
+    for (uint32_t y = 0; y < texture_width; y++) {
+        for (uint32_t x = 0; x < texture_height; x++) {
+            const uint8_t *texture_pixel =
+                texture_data + (y * texture_width + x) * 4;
+            uint8_t *image_pixel = tga_get_pixel(image_data, image_info, x, y);
+            image_pixel[0] = texture_pixel[0];
+            image_pixel[1] = texture_pixel[1];
+            image_pixel[2] = texture_pixel[2];
+            // Convert all pixels to little endian.
+            endian_inversion(image_pixel, 3);
         }
     }
     // This program uses OpenGL style coordinate system, the origin of window
     // space is in the bottom-left corner. But the tgafunc default image origin
     // is in the upper-left corner, so need to flip the image in the Y-axis
     // direction.
-    tga_image_flip_v(tga_data, tga_info);
-    tga_save_from_info(tga_data, tga_info, "output.tga");
+    tga_image_flip_v(image_data, image_info);
+    tga_save_from_info(image_data, image_info, "output.tga");
 
-    tga_free_data(tga_data);
-    tga_free_info(tga_info);
+    tga_free_data(image_data);
+    tga_free_info(image_info);
 }
 
 int main(int argc, char *argv[]) {
@@ -184,14 +192,24 @@ int main(int argc, char *argv[]) {
         printf("Cannot load .obj file.\n");
         return 0;
     }
+
     // Create framebuffer.
-    struct framebuffer *framebuffer;
-    framebuffer = generate_framebuffer(IMAGE_WIDTH, IMAGE_HEIGHT);
+    struct framebuffer *framebuffer = generate_framebuffer();
+    struct texture *color_texture =
+        generate_texture(TEXTURE_FORMAT_RGBA8, IMAGE_WIDTH, IMAGE_HEIGHT);
+    struct texture *depth_texture =
+        generate_texture(TEXTURE_FORMAT_DEPTH_FLOAT, IMAGE_WIDTH, IMAGE_HEIGHT);
+    attach_texture_to_framebuffer(framebuffer, COLOR_ATTACHMENT, color_texture);
+    attach_texture_to_framebuffer(framebuffer, DEPTH_ATTACHMENT, depth_texture);
 
     draw_model(framebuffer, mesh);
-    save_framebuffer(framebuffer);
+    save_color_texture(color_texture);
 
+    // Release framebuffer.
+    delete_texture(color_texture);
+    delete_texture(depth_texture);
     delete_framebuffer(framebuffer);
+
     mesh_free(mesh);
     return 0;
 }
