@@ -97,6 +97,10 @@ void set_fragment_shader(fragment_shader shader);
 /// if the vertex connection sequence is counterclockwise, the triangle is
 /// treated as front face. This function only draws front-facing triangles.
 ///
+/// If the framebuffer is not attached with a depth buffer, the depth test is
+/// not performed. If there is no color buffer attached, the fragment color
+/// result is discarded.
+///
 /// \param framebuffer Buffer for saving rendering results.
 /// \param uniform Contains constants that can be accessed in the vertex shader
 ///                and fragment shader.

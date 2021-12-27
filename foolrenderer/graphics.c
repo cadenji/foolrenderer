@@ -127,10 +127,15 @@ static inline float edge_function(const vector2 *a, const vector2 *b,
     return (c->x - a->x) * (b->y - a->y) - (c->y - a->y) * (b->x - a->x);
 }
 
-// Returns true if the fragment is hidden.
+// Returns true if the fragment is hidden. If the fragment is not hidden, return
+// false. If depth_test is a null pointer, skip the depth test and always return
+// false.
 static inline bool depth_test(uint32_t x, uint32_t y,
                               const struct vertex vertices[],
                               const float barycentric[]) {
+    if (depth_buffer == NULL) {
+        return false;
+    }
     // Interpolate depth, for more details refer to the OpenGL specification
     // section 3.6.1 equation 3.10:
     // https://www.khronos.org/registry/OpenGL/specs/gl/glspec33.core.pdf
@@ -292,12 +297,13 @@ void draw_triangle(struct framebuffer *framebuffer, const void *uniform,
             clear_shader_context(&input);
             set_fragment_shader_input(&input, vertices, bc);
             vector4 fragment_color = fs(&input, uniform);
-
-            uint8_t *pixel = color_buffer + (y * framebuffer_width + x) * 4;
-            pixel[0] = clamp01_float(fragment_color.r) * 0xFF;
-            pixel[1] = clamp01_float(fragment_color.g) * 0xFF;
-            pixel[2] = clamp01_float(fragment_color.b) * 0xFF;
-            pixel[3] = clamp01_float(fragment_color.a) * 0xFF;
+            if (color_buffer != NULL) {
+                uint8_t *pixel = color_buffer + (y * framebuffer_width + x) * 4;
+                pixel[0] = clamp01_float(fragment_color.r) * 0xFF;
+                pixel[1] = clamp01_float(fragment_color.g) * 0xFF;
+                pixel[2] = clamp01_float(fragment_color.b) * 0xFF;
+                pixel[3] = clamp01_float(fragment_color.a) * 0xFF;
+            }
         }
     }
 }
