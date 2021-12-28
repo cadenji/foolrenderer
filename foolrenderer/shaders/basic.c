@@ -23,6 +23,7 @@
 #include "shaders/basic.h"
 
 #include <math.h>
+#include <stddef.h>
 
 #include "math/math_utility.h"
 #include "math/matrix.h"
@@ -33,6 +34,25 @@
 #define TEXCOORD 0
 #define NORMAL 0
 #define POSITION 1
+#define LIGHT_SPACE_POSITION 2
+
+static float shadow_calculation(const struct texture *shadow_map,
+                                const vector3 *light_space_positon) {
+    float visibility = 1.0f;
+    if (shadow_map != NULL) {
+        float current_depth = light_space_positon->z;
+
+        vector2 shadow_map_coord;
+        shadow_map_coord.u = light_space_positon->x;
+        shadow_map_coord.v = light_space_positon->y;
+        vector4 temp;
+        texture_sample(&temp, shadow_map, shadow_map_coord);
+        float closest_depth = temp.r;
+        float bias = 0.005f;  // Slove shadow acne.
+        visibility = current_depth - bias > closest_depth ? 0.1f : 1.0f;
+    }
+    return visibility;
+}
 
 vector4 basic_vertex_shader(struct shader_context *output, const void *uniform,
                             const void *vertex_attribute) {
@@ -51,6 +71,17 @@ vector4 basic_vertex_shader(struct shader_context *output, const void *uniform,
         unif->modelview, vector3_to_4(attr->position, 1.0f));
     vector3 *out_position = shader_context_vector3(output, POSITION);
     *out_position = vector4_to_3(position_in_view);
+
+    vector3 *out_light_space_position =
+        shader_context_vector3(output, LIGHT_SPACE_POSITION);
+    vector4 light_space_position =
+        matrix4x4_multiply_vector4(unif->normalized_light_space_matrix,
+                                   vector3_to_4(attr->position, 1.0f));
+    // When calculating directional light shadows, the projection matrix
+    // contained in normalized_light_space_matrix is an orthogonal matrix, the w
+    // component is always equal to 1.0f, so perspective division is not
+    // required.
+    *out_light_space_position = vector4_to_3(light_space_position);
 
     return matrix4x4_multiply_vector4(unif->projection, position_in_view);
 }
@@ -99,6 +130,14 @@ vector4 basic_fragment_shader(struct shader_context *input,
     vector2 *texcoord = shader_context_vector2(input, TEXCOORD);
     vector4 texture_color = VECTOR4_ONE;
     texture_sample(&texture_color, unif->diffuse_texture, *texcoord);
+
+    // Add shadow.
+    vector3 *light_space_position =
+        shader_context_vector3(input, LIGHT_SPACE_POSITION);
+    float visibility =
+        shadow_calculation(unif->shadow_map, light_space_position);
+    diffuse_lighting = vector3_multiply_scalar(diffuse_lighting, visibility);
+    specular_lighting = vector3_multiply_scalar(specular_lighting, visibility);
 
     vector3 fragment_color = vector3_add(ambient_lighting, diffuse_lighting);
     fragment_color =

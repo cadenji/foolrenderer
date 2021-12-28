@@ -13,6 +13,7 @@ add_executable(${PROJECT_NAME}
     foolrenderer/math/matrix.c
     foolrenderer/math/math_utility.c
     foolrenderer/shaders/basic.c
+    foolrenderer/shaders/shadow_casting.c
 )
 
 target_compile_features(${PROJECT_NAME} PUBLIC c_std_11)
