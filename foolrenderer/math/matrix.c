@@ -7,6 +7,16 @@
 
 #include <stdio.h>
 
+extern matrix3x3 matrix4x4_to_3x3(matrix4x4 m);
+
+extern matrix3x3 matrix3x3_multiply_scalar(matrix3x3 m, float scalar);
+
+extern vector3 matrix3x3_multiply_vector3(matrix3x3 m, vector3 v);
+
+extern matrix3x3 matrix3x3_multiply(matrix3x3 lift, matrix3x3 right);
+
+extern matrix3x3 matrix3x3_transpose(matrix3x3 m);
+
 void matrix4x4_print(matrix4x4 m) {
     for (int row = 0; row < 4; row++) {
         for (int column = 0; column < 4; column++) {

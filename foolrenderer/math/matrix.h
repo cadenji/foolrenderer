@@ -11,6 +11,16 @@
 #include "math/vector.h"
 
 ///
+/// \brief 3x3 matrix of floating point values.
+///
+/// Matrices are row major, elements are accessed with
+/// matrix.elements[row_index][column_index].
+///
+typedef struct matrix3x3 {
+    float elements[3][3];
+} matrix3x3;
+
+///
 /// \brief 4x4 matrix of floating point values.
 ///
 /// Matrices are row major, elements are accessed with
@@ -19,6 +29,20 @@
 typedef struct matrix4x4 {
     float elements[4][4];
 } matrix4x4;
+
+///
+/// \brief 3x3 identity matrix constant.
+///
+#define MATRIX3X3_IDENTITY \
+    ((const matrix3x3){    \
+        {{1.0f, 0.0f, 0.0f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f, 1.0f}}})
+
+///
+/// \brief 3x3 zero matrix constant, all elements are set to zero.
+///
+#define MATRIX3X3_ZERO  \
+    ((const matrix3x3){ \
+        {{0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}, {0.0f, 0.0f, 0.0f}}})
 
 ///
 /// \brief 4x4 identity matrix constant.
@@ -37,6 +61,71 @@ typedef struct matrix4x4 {
                         {0.0f, 0.0f, 0.0f, 0.0f}, \
                         {0.0f, 0.0f, 0.0f, 0.0f}, \
                         {0.0f, 0.0f, 0.0f, 0.0f}}})
+
+///
+/// \brief Constructs a matrix3x3 from the upper-left of matrix4x4.
+///
+inline matrix3x3 matrix4x4_to_3x3(matrix4x4 m) {
+    return (matrix3x3){
+        {{m.elements[0][0], m.elements[0][1], m.elements[0][2]},
+         {m.elements[1][0], m.elements[1][1], m.elements[1][2]},
+         {m.elements[2][0], m.elements[2][1], m.elements[2][2]}}};
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//
+// 3x3 matrix functions.
+//
+////////////////////////////////////////////////////////////////////////////////
+
+inline matrix3x3 matrix3x3_multiply_scalar(matrix3x3 m, float scalar) {
+    for (int row = 0; row < 3; row++) {
+        for (int column = 0; column < 3; column++) {
+            m.elements[row][column] *= scalar;
+        }
+    }
+    return m;
+}
+
+inline vector3 matrix3x3_multiply_vector3(matrix3x3 m, vector3 v) {
+    vector3 result = VECTOR3_ZERO;
+    for (int row = 0; row < 3; row++) {
+        for (int column = 0; column < 3; column++) {
+            result.elements[row] +=
+                m.elements[row][column] * v.elements[column];
+        }
+    }
+    return result;
+}
+
+inline matrix3x3 matrix3x3_multiply(matrix3x3 lift, matrix3x3 right) {
+    matrix3x3 result = MATRIX3X3_ZERO;
+    for (int v = 0; v < 3; v++) {
+        for (int row = 0; row < 3; row++) {
+            for (int column = 0; column < 3; column++) {
+                result.elements[row][v] +=
+                    lift.elements[row][column] * right.elements[column][v];
+            }
+        }
+    }
+    return result;
+}
+
+inline matrix3x3 matrix3x3_transpose(matrix3x3 m) {
+    matrix3x3 result;
+    for (int row = 0; row < 3; row++) {
+        for (int column = 0; column < 3; column++) {
+            result.elements[column][row] = m.elements[row][column];
+        }
+    }
+    return result;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//
+// 4x4 matrix functions.
+//
+////////////////////////////////////////////////////////////////////////////////
 
 ///
 /// \brief Converts the 4x4 matrix to string and writes the result to stdout.
@@ -66,7 +155,7 @@ inline vector4 matrix4x4_multiply_vector4(matrix4x4 m, vector4 v) {
 }
 
 inline matrix4x4 matrix4x4_multiply(matrix4x4 lift, matrix4x4 right) {
-    matrix4x4 result = {0};
+    matrix4x4 result = MATRIX4X4_ZERO;
     for (int v = 0; v < 4; v++) {
         for (int row = 0; row < 4; row++) {
             for (int column = 0; column < 4; column++) {
