@@ -11,9 +11,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "math/math_utility.h"
 #include "texture.h"
-
-#define MIN(a, b) (a < b ? a : b)
 
 struct framebuffer {
     uint32_t width, height;
@@ -36,14 +35,15 @@ struct framebuffer *generate_framebuffer(void) {
 
 void delete_framebuffer(struct framebuffer *framebuffer) { free(framebuffer); }
 
-#define SET_MIN_SIZE(buffer)                                               \
-    do {                                                                   \
-        if (buffer != NULL) {                                              \
-            uint32_t buffer_width = get_texture_width(buffer);             \
-            uint32_t buffer_height = get_texture_height(buffer);           \
-            framebuffer->width = MIN(framebuffer->width, buffer_width);    \
-            framebuffer->height = MIN(framebuffer->height, buffer_height); \
-        }                                                                  \
+#define SET_MIN_SIZE(buffer)                                                   \
+    do {                                                                       \
+        if (buffer != NULL) {                                                  \
+            uint32_t buffer_width = get_texture_width(buffer);                 \
+            uint32_t buffer_height = get_texture_height(buffer);               \
+            framebuffer->width = min_uint32(framebuffer->width, buffer_width); \
+            framebuffer->height =                                              \
+                min_uint32(framebuffer->height, buffer_height);                \
+        }                                                                      \
     } while (0)
 
 bool attach_texture_to_framebuffer(struct framebuffer *framebuffer,

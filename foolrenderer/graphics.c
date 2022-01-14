@@ -246,10 +246,12 @@ void draw_triangle(struct framebuffer *framebuffer, const void *uniform,
     // Traverse find the pixels covered by the triangle. If found, compute the
     // barycentric coordinates of the point in the triangle.
     // No need to traverses pixels outside the window.
-    uint32_t x_min = clamp_int(floorf(bound.min.x), 0, framebuffer_width - 1);
-    uint32_t y_min = clamp_int(floorf(bound.min.y), 0, framebuffer_height - 1);
-    uint32_t x_max = clamp_int(floorf(bound.max.x), 0, framebuffer_width - 1);
-    uint32_t y_max = clamp_int(floorf(bound.max.y), 0, framebuffer_height - 1);
+    uint32_t x_min = clamp_int32(floorf(bound.min.x), 0, framebuffer_width - 1);
+    uint32_t y_min =
+        clamp_int32(floorf(bound.min.y), 0, framebuffer_height - 1);
+    uint32_t x_max = clamp_int32(floorf(bound.max.x), 0, framebuffer_width - 1);
+    uint32_t y_max =
+        clamp_int32(floorf(bound.max.y), 0, framebuffer_height - 1);
 
     for (uint32_t y = y_min; y <= y_max; y++) {
         for (uint32_t x = x_min; x <= x_max; x++) {
