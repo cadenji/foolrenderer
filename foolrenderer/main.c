@@ -3,7 +3,6 @@
 // Licensed under the MIT License. See LICENSE.txt in the project root for
 // license information.
 
-#include <cwalk.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -45,17 +44,11 @@ static struct texture *load_diffuse_texture(struct mesh *mesh) {
     if (strlen(diffuse_texture_name) == 0) {
         return NULL;
     }
-    const char *directory_name = mesh_get_directory_name(mesh);
-    size_t image_name_length =
-        strlen(directory_name) + strlen(diffuse_texture_name) + 2;
-    char image_name[image_name_length];
-    cwk_path_join(directory_name, diffuse_texture_name, image_name,
-                  image_name_length);
 
     uint8_t *image_data;
     tga_info *image_info;
     enum tga_error error_code;
-    error_code = tga_load(&image_data, &image_info, image_name);
+    error_code = tga_load(&image_data, &image_info, diffuse_texture_name);
     if (error_code != TGA_NO_ERROR) {
         return NULL;
     }

@@ -13,7 +13,7 @@
 
 struct mesh;
 
-struct mesh *mesh_load(const char *file_name);
+struct mesh *mesh_load(const char *filename);
 
 void mesh_free(struct mesh *mesh);
 
@@ -77,19 +77,10 @@ bool mesh_get_normal(vector3 *normal, const struct mesh *mesh,
                      uint32_t triangle_index, uint32_t vertex_index);
 
 ///
-/// \brief Gets the directory where the model file is located when the mesh is
-///        loaded.
+/// \brief Gets the file path of the diffuse texture map of the mesh object.
 ///
 /// \param mesh The mesh object.
-/// \return The directory name. If no directory name, returns an empty string.
-///
-const char *mesh_get_directory_name(const struct mesh *mesh);
-
-///
-/// \brief Gets the file name of the diffuse texture map of the mesh object.
-///
-/// \param mesh The mesh object.
-/// \return The file name of the diffuse texture map. If not exist, returns an
+/// \return The file path of the diffuse texture map. If not exist, returns an
 ///         empty string.
 ///
 const char *mesh_get_diffuse_texture_name(const struct mesh *mesh);
