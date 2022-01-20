@@ -37,12 +37,8 @@ add_subdirectory(external/tgafunc)
 add_subdirectory(external/cwalk)
 add_subdirectory(external/fast_obj)
 
-add_library(tinyobjloader-c INTERFACE)
-target_include_directories(tinyobjloader-c INTERFACE external/tinyobjloader-c)
-
 target_link_libraries(${PROJECT_NAME}
     tgafunc
-    tinyobjloader-c
     cwalk
     fast_obj_lib
 )
