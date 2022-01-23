@@ -6,83 +6,99 @@
 #ifndef FOOLRENDERER_MESH_H_
 #define FOOLRENDERER_MESH_H_
 
-#include <stdbool.h>
 #include <stdint.h>
 
 #include "math/vector.h"
 
-struct mesh;
+///
+/// The mesh is made of triangles, each triangle is defined by three vertex
+/// indices. For example, a cube mesh has 12 triangles, then the indices array
+/// length should be 36, with each value indicating which vertex to use. The
+/// first three elements in the indices array are the indices of the vertices
+/// that make up the triangle; the second three elements make up another
+/// triangle, and so on.
+///
+/// For every vertex there can be a vertex position, texture coordinate
+/// (texcoord), normal. These data are collectively called vertex attributes.
+/// Vertex attributes other than position are optional.
+//
+/// All vertex attributes (if present) are stored in separate arrays of the same
+/// size. For example, if a mesh has 100 vertices, and want to have a position,
+/// texcoord for each vertex, then the mesh should have positions and texcoords
+/// arrays, each being 100 in size. Data for i-th vertex is at index "i" in each
+/// array. Pointers to other vertex attributes should point to null pointers.
+///
+/// If the mesh has no diffuse texture associated with it, diffuse_texture_path
+/// points to a null pointer.
+///
+struct mesh {
+    vector3 *positions;
+    vector2 *texcoords;
+    vector3 *normals;
+    uint32_t *indices;
+    char *diffuse_texture_path;
+    uint32_t vertex_count;
+    uint32_t triangle_count;
+};
 
+///
+/// \brief Load mesh data from .obj file.
+///
+/// Currently, only mesh consisting of triangular polygons are supported.
+///
+/// \param filename .obj filename.
+/// \return Returns a pointer to the mesh object if the load was successful,
+///         otherwise returns a null pointer.
+///
 struct mesh *mesh_load(const char *filename);
 
-void mesh_free(struct mesh *mesh);
-
-uint32_t mesh_triangle_count(const struct mesh *mesh);
+void mesh_release(struct mesh *mesh);
 
 ///
 /// \brief Gets the position of a vertex in the mesh.
 ///
-/// If the triangle or vertex index exceeds the range, does nothing.
+/// If the triangle or vertex index exceeds the range, returns zero vector.
 ///
-/// \param position The vertex position to be saved.
-/// \param mesh The mesh object.
+/// \param position Pointer to the vector where the position is stored.
+/// \param mesh The mesh to read.
 /// \param triangle_index The index of the triangle, ranging from 0 to
 ///                       triangle_count-1.
 /// \param vertex_index The index of the vertex in the triangle, ranging from 0
 ///                     to 2.
-/// \return Returns true if gets positions successful. Returns false if the
-///         triangle or vertex index exceeds the range.
 ///
-bool mesh_get_vertex_position(vector3 *position, const struct mesh *mesh,
-                              uint32_t triangle_index, uint32_t vertex_index);
+void mesh_get_position(vector3 *position, const struct mesh *mesh,
+                       uint32_t triangle_index, uint32_t vertex_index);
 
 ///
-/// \brief Gets the texture coordinates of a vertex in the mesh.
+/// \brief Gets the texcoord of a vertex in the mesh.
 ///
-/// If the triangle or vertex index exceeds the range or texture coordinates are
-/// not included in the triangle, do nothing.
+/// If the triangle or vertex index exceeds the range or if the texcoords are
+/// not contained in the mesh, returns zero vector.
 ///
-/// \param texture_coordinates The texture coordinates to be saved.
-/// \param mesh The mesh object.
+/// \param texcoord Pointer to the vector where the texcoord is stored.
+/// \param mesh The mesh to read.
 /// \param triangle_index The index of the triangle, ranging from 0 to
 ///                       triangle_count-1.
 /// \param vertex_index The index of the vertex in the triangle, ranging from 0
 ///                     to 2.
-/// \return Returns true if successful. Returns false if the triangle or vertex
-///         index exceeds the range or texture coordinates are not included in
-///         the triangle.
 ///
-bool mesh_get_texture_coordinates(vector2 *texture_coordinates,
-                                  const struct mesh *mesh,
-                                  uint32_t triangle_index,
-                                  uint32_t vertex_index);
+void mesh_get_texcoord(vector2 *texcoord, const struct mesh *mesh,
+                       uint32_t triangle_index, uint32_t vertex_index);
 
 ///
 /// \brief Gets the normal of a vertex in the mesh.
-//
-/// If the triangle or vertex index exceeds the range, do nothing. If the index
-/// is valid and the mesh itself does not contain normal data, the normal will
-/// be calculated based on the vertex position.
 ///
-/// \param normal The normal to be saved.
-/// \param mesh The mesh object.
+/// If the triangle or vertex index exceeds the range or if the normals are not
+/// contained in the mesh, returns zero vector.
+///
+/// \param normal Pointer to the vector where the normal is stored.
+/// \param mesh The mesh to read.
 /// \param triangle_index The index of the triangle, ranging from 0 to
 ///                       triangle_count-1.
 /// \param vertex_index The index of the vertex in the triangle, ranging from 0
 ///                     to 2.
-/// \return Returns true if successful. Returns false if the triangle or vertex
-///         index exceeds the range.
 ///
-bool mesh_get_normal(vector3 *normal, const struct mesh *mesh,
+void mesh_get_normal(vector3 *normal, const struct mesh *mesh,
                      uint32_t triangle_index, uint32_t vertex_index);
-
-///
-/// \brief Gets the file path of the diffuse texture map of the mesh object.
-///
-/// \param mesh The mesh object.
-/// \return The file path of the diffuse texture map. If not exist, returns an
-///         empty string.
-///
-const char *mesh_get_diffuse_texture_name(const struct mesh *mesh);
 
 #endif  // FOOLRENDERER_MESH_H_

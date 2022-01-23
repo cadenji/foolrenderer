@@ -39,16 +39,15 @@ static void endian_inversion(uint8_t *bytes, size_t size) {
     }
 }
 
-static struct texture *load_diffuse_texture(struct mesh *mesh) {
-    const char *diffuse_texture_name = mesh_get_diffuse_texture_name(mesh);
-    if (strlen(diffuse_texture_name) == 0) {
+static struct texture *load_texture(const char *filename) {
+    if (filename == NULL || strlen(filename) == 0) {
         return NULL;
     }
 
     uint8_t *image_data;
     tga_info *image_info;
     enum tga_error error_code;
-    error_code = tga_load(&image_data, &image_info, diffuse_texture_name);
+    error_code = tga_load(&image_data, &image_info, filename);
     if (error_code != TGA_NO_ERROR) {
         return NULL;
     }
@@ -140,12 +139,12 @@ static void draw_model(struct mesh *mesh) {
         matrix4x4_multiply(light_projection, light_view);
     shadow_uniform.light_space_matrix = light_space_matrix;
 
-    uint32_t triangle_count = mesh_triangle_count(mesh);
+    uint32_t triangle_count = mesh->triangle_count;
     for (size_t t = 0; t < triangle_count; t++) {
         struct shadow_casting_vertex_attribute attributes[3];
         const void *attribute_ptrs[3];
         for (uint32_t v = 0; v < 3; v++) {
-            mesh_get_vertex_position(&attributes[v].position, mesh, t, v);
+            mesh_get_position(&attributes[v].position, mesh, t, v);
             attribute_ptrs[v] = attributes + v;
         }
         draw_triangle(shadow_framebuffer, &shadow_uniform, attribute_ptrs);
@@ -181,7 +180,7 @@ static void draw_model(struct mesh *mesh) {
     uniform.diffuse_reflectance = VECTOR3_ONE;
     uniform.specular_reflectance = VECTOR3_ONE;
     uniform.shininess = 100.0f;
-    uniform.diffuse_texture = load_diffuse_texture(mesh);
+    uniform.diffuse_texture = load_texture(mesh->diffuse_texture_path);
     matrix4x4 normalized_matrix = {{{0.5f, 0.0f, 0.0f, 0.5f},
                                     {0.0f, 0.5f, 0.0f, 0.5f},
                                     {0.0f, 0.0f, 0.5f, 0.5f},
@@ -194,9 +193,9 @@ static void draw_model(struct mesh *mesh) {
         struct basic_vertex_attribute attributes[3];
         const void *attribute_ptrs[3];
         for (uint32_t v = 0; v < 3; v++) {
-            mesh_get_vertex_position(&attributes[v].position, mesh, t, v);
+            mesh_get_position(&attributes[v].position, mesh, t, v);
             mesh_get_normal(&attributes[v].normal, mesh, t, v);
-            mesh_get_texture_coordinates(&attributes[v].texcoord, mesh, t, v);
+            mesh_get_texcoord(&attributes[v].texcoord, mesh, t, v);
             attribute_ptrs[v] = attributes + v;
         }
         draw_triangle(framebuffer, &uniform, attribute_ptrs);
@@ -228,6 +227,6 @@ int main(int argc, char *argv[]) {
         return 0;
     }
     draw_model(mesh);
-    mesh_free(mesh);
+    mesh_release(mesh);
     return 0;
 }
