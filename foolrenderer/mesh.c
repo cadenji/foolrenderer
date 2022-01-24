@@ -145,7 +145,7 @@ static bool set_diffuse_texture_name(struct mesh *mesh,
         return false;
     }
     mesh->diffuse_texture_path = malloc(length);
-    if(mesh->diffuse_texture_path == NULL){
+    if (mesh->diffuse_texture_path == NULL) {
         return true;
     }
     strncpy(mesh->diffuse_texture_path, texture_path, length);
@@ -208,6 +208,7 @@ void mesh_get_position(vector3 *position, const struct mesh *mesh,
                        uint32_t triangle_index, uint32_t vertex_index) {
     if (triangle_index >= mesh->triangle_count || vertex_index > 2) {
         *position = VECTOR3_ZERO;
+        return;
     }
     uint32_t index = *(mesh->indices + triangle_index * 3 + vertex_index);
     *position = *(mesh->positions + index);
@@ -218,6 +219,7 @@ void mesh_get_texcoord(vector2 *texcoord, const struct mesh *mesh,
     if (triangle_index >= mesh->triangle_count || vertex_index > 2 ||
         mesh->texcoords == NULL) {
         *texcoord = VECTOR2_ZERO;
+        return;
     }
     uint32_t index = *(mesh->indices + triangle_index * 3 + vertex_index);
     *texcoord = *(mesh->texcoords + index);
@@ -228,6 +230,7 @@ void mesh_get_normal(vector3 *normal, const struct mesh *mesh,
     if (triangle_index >= mesh->triangle_count || vertex_index > 2 ||
         mesh->normals == NULL) {
         *normal = VECTOR3_ZERO;
+        return;
     }
     uint32_t index = *(mesh->indices + triangle_index * 3 + vertex_index);
     *normal = *(mesh->normals + index);
