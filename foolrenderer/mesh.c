@@ -48,7 +48,6 @@ static bool set_vertex_attributes(struct mesh *mesh, const fastObjMesh *data) {
 
     uint32_t *indices = malloc(sizeof(uint32_t) * index_count);
     if (indices == NULL) {
-        free(indices);
         return true;
     }
 
