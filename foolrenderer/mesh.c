@@ -153,9 +153,48 @@ static bool set_diffuse_texture_name(struct mesh *mesh,
 }
 
 // Returns true if failed, otherwise returns false.
-static bool generate_normals(struct mesh *mesh) {
-    // TODO:
-    (void)mesh;
+static bool compute_vertex_normals(struct mesh *mesh) {
+    if (mesh->normals != NULL) {
+        free(mesh->normals);
+    }
+    mesh->normals = malloc(sizeof(vector3) * mesh->vertex_count);
+    if (mesh->normals == NULL) {
+        return true;
+    }
+
+    for (uint32_t v = 0; v < mesh->vertex_count; v++) {
+        mesh->normals[v] = VECTOR3_ZERO;
+    }
+    for (uint32_t t = 0; t < mesh->triangle_count; t++) {
+        // For calculating surface normals, refer to:
+        // https://www.khronos.org/opengl/wiki/Calculating_a_Surface_Normal
+        uint32_t *index_1 = mesh->indices + t * 3;
+        vector3 *p1 = mesh->positions + *index_1;
+        vector3 *p2 = mesh->positions + *(index_1 + 1);
+        vector3 *p3 = mesh->positions + *(index_1 + 2);
+        vector3 u = vector3_subtract(*p2, *p1);
+        vector3 v = vector3_subtract(*p3, *p1);
+        // Vertices are stored in counterclockwise order by default in .obj
+        // files. And the foolrenderer uses a right-handed coordinate system. So
+        // use "n = u X v" to calculate the normal.
+        vector3 n = vector3_cross(u, v);
+        // Add the surface normal of the triangle to the normals already present
+        // on the three vertices of the triangle. Note that the triangle surface
+        // normal is not normalized, its magnitude is twice the area of the
+        // triangle, so that the normal direction of a triangle with a larger
+        // area has a larger contribution to the normal direction of adjacent
+        // vertices.
+        vector3 *n1 = mesh->normals + *index_1;
+        vector3 *n2 = mesh->normals + *(index_1 + 1);
+        vector3 *n3 = mesh->normals + *(index_1 + 2);
+        *n1 = vector3_add(*n1, n);
+        *n2 = vector3_add(*n2, n);
+        *n3 = vector3_add(*n3, n);
+    }
+    // Normalize the normals of all vertices to get the average result.
+    for (uint32_t v = 0; v < mesh->vertex_count; v++) {
+        mesh->normals[v] = vector3_normalize(mesh->normals[v]);
+    }
     return false;
 }
 
@@ -177,7 +216,7 @@ struct mesh *mesh_load(const char *filename) {
         goto load_failed;
     }
     if (mesh->normals == NULL) {
-        if (generate_normals(mesh)) {
+        if (compute_vertex_normals(mesh)) {
             goto load_failed;
         }
     }
