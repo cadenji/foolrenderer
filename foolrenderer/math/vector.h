@@ -354,4 +354,47 @@ inline vector4 vector4_divide_scalar(vector4 v, float scalar) {
     return (vector4){{v.x / scalar, v.y / scalar, v.z / scalar, v.w / scalar}};
 }
 
+inline float vector4_dot(vector4 v1, vector4 v2) {
+    return v1.x * v2.x + v1.y * v2.y + v1.z * v2.z + v1.w * v2.w;
+}
+
+///
+/// \brief Gets the lenght of the 4D vector.
+///
+/// If only need to compare lenght of some vectors, using
+/// vector4_magnitude_squared() instead. Because this function
+/// doesn't perform square root, the execution speed is faster.
+///
+/// \param v The vector to be calculated.
+/// \return The length of the vector.
+///
+inline float vector4_magnitude(vector4 v) { return sqrtf(vector4_dot(v, v)); }
+
+///
+/// \brief Gets the squared lenght of the 4D vector.
+///
+/// \param v The vector to be calculated.
+/// \return The squared length of the vector.
+///
+inline float vector4_magnitude_squared(vector4 v) { return vector4_dot(v, v); }
+
+///
+/// \brief Gets a normalized copy of the 4D vector. Returns a zero vector if the
+///        vector magnitude is 0.
+///
+/// \param v The vector to be normalized.
+/// \return Returns a normalized copy if the vector magnitude is not equal 0,
+///         otherwise returns zero vector.
+///
+inline vector4 vector4_normalize(vector4 v) {
+    float square_magnitude = vector4_magnitude_squared(v);
+    if (square_magnitude == 0.0f) {
+        return VECTOR4_ZERO;
+    }
+    if (fabsf(square_magnitude - 1.0f) < SMALL_ABSOLUTE_FLOAT) {
+        return v;
+    }
+    return vector4_multiply_scalar(v, 1.0f / sqrtf(square_magnitude));
+}
+
 #endif  // FOOLRENDERER_MATH_VECTOR_H_

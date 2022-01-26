@@ -80,3 +80,11 @@ extern vector4 vector4_multiply_scalar(vector4 v, float scalar);
 extern vector4 vector4_divide(vector4 v1, vector4 v2);
 
 extern vector4 vector4_divide_scalar(vector4 v, float scalar);
+
+extern float vector4_dot(vector4 v1, vector4 v2);
+
+extern float vector4_magnitude(vector4 v);
+
+extern float vector4_magnitude_squared(vector4 v);
+
+extern vector4 vector4_normalize(vector4 v);
