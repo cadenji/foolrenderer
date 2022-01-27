@@ -152,11 +152,10 @@ static bool set_diffuse_texture_name(struct mesh *mesh,
     return false;
 }
 
+// Calculates the average unit-length normal vector for each vertex in the mesh.
+//
 // Returns true if failed, otherwise returns false.
-static bool compute_vertex_normals(struct mesh *mesh) {
-    if (mesh->normals != NULL) {
-        free(mesh->normals);
-    }
+static bool compute_normals(struct mesh *mesh) {
     mesh->normals = malloc(sizeof(vector3) * mesh->vertex_count);
     if (mesh->normals == NULL) {
         return true;
@@ -168,12 +167,14 @@ static bool compute_vertex_normals(struct mesh *mesh) {
     for (uint32_t t = 0; t < mesh->triangle_count; t++) {
         // For calculating surface normals, refer to:
         // https://www.khronos.org/opengl/wiki/Calculating_a_Surface_Normal
-        uint32_t *index_1 = mesh->indices + t * 3;
-        vector3 *p1 = mesh->positions + *index_1;
-        vector3 *p2 = mesh->positions + *(index_1 + 1);
-        vector3 *p3 = mesh->positions + *(index_1 + 2);
-        vector3 u = vector3_subtract(*p2, *p1);
-        vector3 v = vector3_subtract(*p3, *p1);
+        uint32_t index_0 = mesh->indices[t * 3];
+        uint32_t index_1 = mesh->indices[t * 3 + 1];
+        uint32_t index_2 = mesh->indices[t * 3 + 2];
+        const vector3 *p0 = mesh->positions + index_0;
+        const vector3 *p1 = mesh->positions + index_1;
+        const vector3 *p2 = mesh->positions + index_2;
+        vector3 u = vector3_subtract(*p1, *p0);
+        vector3 v = vector3_subtract(*p2, *p0);
         // Vertices are stored in counterclockwise order by default in .obj
         // files. And the foolrenderer uses a right-handed coordinate system. So
         // use "n = u X v" to calculate the normal.
@@ -184,16 +185,92 @@ static bool compute_vertex_normals(struct mesh *mesh) {
         // triangle, so that the normal direction of a triangle with a larger
         // area has a larger contribution to the normal direction of adjacent
         // vertices.
-        vector3 *n1 = mesh->normals + *index_1;
-        vector3 *n2 = mesh->normals + *(index_1 + 1);
-        vector3 *n3 = mesh->normals + *(index_1 + 2);
-        *n1 = vector3_add(*n1, n);
-        *n2 = vector3_add(*n2, n);
-        *n3 = vector3_add(*n3, n);
+        mesh->normals[index_0] = vector3_add(mesh->normals[index_0], n);
+        mesh->normals[index_1] = vector3_add(mesh->normals[index_1], n);
+        mesh->normals[index_2] = vector3_add(mesh->normals[index_2], n);
     }
     // Normalize the normals of all vertices to get the average result.
     for (uint32_t v = 0; v < mesh->vertex_count; v++) {
         mesh->normals[v] = vector3_normalize(mesh->normals[v]);
+    }
+    return false;
+}
+
+// Calculates the average unit-length tangent vector for each vertex of the mesh
+// from the normals and texcoords. If the mesh does not have normals or
+// texcoords, the mesh's tangents will point to a null pointer.
+//
+// Returns true if failed, otherwise returns false.
+static bool compute_tangents(struct mesh *mesh) {
+    if (mesh->normals == NULL || mesh->texcoords == NULL) {
+        mesh->tangents = NULL;
+        return false;
+    }
+    mesh->tangents = malloc(sizeof(vector4) * mesh->vertex_count);
+    if (mesh->tangents == NULL) {
+        return true;
+    }
+
+    // Temporary array for tangents and bitangents and initialize to zero
+    // vector.
+    vector3 tangents[mesh->vertex_count];
+    vector3 bitangents[mesh->vertex_count];
+    for (uint32_t v = 0; v < mesh->vertex_count; v++) {
+        tangents[v] = VECTOR3_ZERO;
+        bitangents[v] = VECTOR3_ZERO;
+    }
+    // This function use Lengyel’s method, for more details refer to:
+    // http://www.terathon.com/code/tangent.html
+    for (uint32_t t = 0; t < mesh->triangle_count; t++) {
+        uint32_t index_0 = mesh->indices[t * 3];
+        uint32_t index_1 = mesh->indices[t * 3 + 1];
+        uint32_t index_2 = mesh->indices[t * 3 + 2];
+        const vector3 *p0 = mesh->positions + index_0;
+        const vector3 *p1 = mesh->positions + index_1;
+        const vector3 *p2 = mesh->positions + index_2;
+        const vector2 *w0 = mesh->texcoords + index_0;
+        const vector2 *w1 = mesh->texcoords + index_1;
+        const vector2 *w2 = mesh->texcoords + index_2;
+
+        vector3 e1 = vector3_subtract(*p1, *p0);
+        vector3 e2 = vector3_subtract(*p2, *p0);
+        float x1 = w1->u - w0->u;
+        float x2 = w2->u - w0->u;
+        float y1 = w1->v - w0->v;
+        float y2 = w2->v - w0->v;
+
+        // TODO: divide-by-zero should be avoided.
+        float r = 1.0f / (x1 * y2 - x2 * y1);
+        vector3 tangent = vector3_subtract(vector3_multiply_scalar(e1, y2),
+                                           vector3_multiply_scalar(e2, y1));
+        tangent = vector3_multiply_scalar(tangent, r);
+        vector3 bitangent = vector3_subtract(vector3_multiply_scalar(e2, x1),
+                                             vector3_multiply_scalar(e1, x2));
+        bitangent = vector3_multiply_scalar(bitangent, r);
+
+        tangents[index_0] = vector3_add(tangents[index_0], tangent);
+        tangents[index_1] = vector3_add(tangents[index_1], tangent);
+        tangents[index_2] = vector3_add(tangents[index_2], tangent);
+        bitangents[index_0] = vector3_add(bitangents[index_0], bitangent);
+        bitangents[index_1] = vector3_add(bitangents[index_1], bitangent);
+        bitangents[index_2] = vector3_add(bitangents[index_2], bitangent);
+    }
+
+    for (uint32_t v = 0; v < mesh->vertex_count; v++) {
+        vector3 *t = tangents + v;
+        const vector3 *b = bitangents + v;
+        const vector3 *n = mesh->normals + v;
+        // Gram-Schmidt orthogonalize.
+        *t = vector3_subtract(*t,
+                              vector3_multiply_scalar(*n, vector3_dot(*n, *t)));
+        *t = vector3_normalize(*t);
+
+        vector4 *tangent = mesh->tangents + v;
+        tangent->x = t->x;
+        tangent->y = t->y;
+        tangent->z = t->z;
+        tangent->w =
+            vector3_dot(vector3_cross(*n, *t), *b) < 0.0f ? -1.0f : 1.0f;
     }
     return false;
 }
@@ -216,9 +293,12 @@ struct mesh *mesh_load(const char *filename) {
         goto load_failed;
     }
     if (mesh->normals == NULL) {
-        if (compute_vertex_normals(mesh)) {
+        if (compute_normals(mesh)) {
             goto load_failed;
         }
+    }
+    if (compute_tangents(mesh)) {
+        goto load_failed;
     }
 
     fast_obj_destroy(data);
@@ -237,6 +317,7 @@ void mesh_release(struct mesh *mesh) {
         free(mesh->positions);
         free(mesh->texcoords);
         free(mesh->normals);
+        free(mesh->tangents);
         free(mesh->indices);
         free(mesh->diffuse_texture_path);
         free(mesh);
@@ -247,10 +328,10 @@ void mesh_get_position(vector3 *position, const struct mesh *mesh,
                        uint32_t triangle_index, uint32_t vertex_index) {
     if (triangle_index >= mesh->triangle_count || vertex_index > 2) {
         *position = VECTOR3_ZERO;
-        return;
+    } else {
+        uint32_t index = mesh->indices[triangle_index * 3 + vertex_index];
+        *position = mesh->positions[index];
     }
-    uint32_t index = *(mesh->indices + triangle_index * 3 + vertex_index);
-    *position = *(mesh->positions + index);
 }
 
 void mesh_get_texcoord(vector2 *texcoord, const struct mesh *mesh,
@@ -258,10 +339,10 @@ void mesh_get_texcoord(vector2 *texcoord, const struct mesh *mesh,
     if (triangle_index >= mesh->triangle_count || vertex_index > 2 ||
         mesh->texcoords == NULL) {
         *texcoord = VECTOR2_ZERO;
-        return;
+    } else {
+        uint32_t index = mesh->indices[triangle_index * 3 + vertex_index];
+        *texcoord = mesh->texcoords[index];
     }
-    uint32_t index = *(mesh->indices + triangle_index * 3 + vertex_index);
-    *texcoord = *(mesh->texcoords + index);
 }
 
 void mesh_get_normal(vector3 *normal, const struct mesh *mesh,
@@ -269,8 +350,19 @@ void mesh_get_normal(vector3 *normal, const struct mesh *mesh,
     if (triangle_index >= mesh->triangle_count || vertex_index > 2 ||
         mesh->normals == NULL) {
         *normal = VECTOR3_ZERO;
-        return;
+    } else {
+        uint32_t index = mesh->indices[triangle_index * 3 + vertex_index];
+        *normal = mesh->normals[index];
     }
-    uint32_t index = *(mesh->indices + triangle_index * 3 + vertex_index);
-    *normal = *(mesh->normals + index);
+}
+
+void mesh_get_tangent(vector4 *tangent, const struct mesh *mesh,
+                      uint32_t triangle_index, uint32_t vertex_index) {
+    if (triangle_index >= mesh->triangle_count || vertex_index > 2 ||
+        mesh->tangents == NULL) {
+        *tangent = VECTOR4_ZERO;
+    } else {
+        uint32_t index = mesh->indices[triangle_index * 3 + vertex_index];
+        *tangent = mesh->tangents[index];
+    }
 }
