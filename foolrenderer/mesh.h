@@ -34,6 +34,11 @@
 struct mesh {
     vector3 *positions;
     vector2 *texcoords;
+    ///
+    /// \brief The normals of the mesh.
+    ///
+    /// Normals are unit vectors.
+    ///
     vector3 *normals;
     ///
     /// \brief The tangents of the mesh.
@@ -121,7 +126,7 @@ void mesh_get_normal(vector3 *normal, const struct mesh *mesh,
 ///
 /// If the triangle or vertex index exceeds the range or if the tangents are not
 /// contained in the mesh, returns zero vector.
-/// 
+///
 /// \param tangent Pointer to the vector where the tangent is stored.
 /// \param mesh The mesh to read.
 /// \param triangle_index The index of the triangle, ranging from 0 to

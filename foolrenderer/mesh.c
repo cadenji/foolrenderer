@@ -117,6 +117,8 @@ static bool set_vertex_attributes(struct mesh *mesh, const fastObjMesh *data) {
             }
             memcpy((normals + i)->elements, data->normals + vertex->n * 3,
                    sizeof(float) * 3);
+            // Normal data in .obj files may not be normalized.
+            normals[i] = vector3_normalize(normals[i]);
         }
     }
 
