@@ -241,15 +241,20 @@ static bool compute_tangents(struct mesh *mesh) {
         float y1 = w1->v - w0->v;
         float y2 = w2->v - w0->v;
 
-        // TODO: divide-by-zero should be avoided.
-        float r = 1.0f / (x1 * y2 - x2 * y1);
-        vector3 tangent = vector3_subtract(vector3_multiply_scalar(e1, y2),
-                                           vector3_multiply_scalar(e2, y1));
-        tangent = vector3_multiply_scalar(tangent, r);
-        vector3 bitangent = vector3_subtract(vector3_multiply_scalar(e2, x1),
-                                             vector3_multiply_scalar(e1, x2));
-        bitangent = vector3_multiply_scalar(bitangent, r);
-
+        float d = x1 * y2 - x2 * y1;
+        vector3 tangent, bitangent;
+        if (d == 0.0f) {
+            tangent = VECTOR3_ZERO;
+            bitangent = VECTOR3_ZERO;
+        } else {
+            float r = 1.0f / d;
+            tangent = vector3_subtract(vector3_multiply_scalar(e1, y2),
+                                       vector3_multiply_scalar(e2, y1));
+            tangent = vector3_multiply_scalar(tangent, r);
+            bitangent = vector3_subtract(vector3_multiply_scalar(e2, x1),
+                                         vector3_multiply_scalar(e1, x2));
+            bitangent = vector3_multiply_scalar(bitangent, r);
+        }
         tangents[index_0] = vector3_add(tangents[index_0], tangent);
         tangents[index_1] = vector3_add(tangents[index_1], tangent);
         tangents[index_2] = vector3_add(tangents[index_2], tangent);
