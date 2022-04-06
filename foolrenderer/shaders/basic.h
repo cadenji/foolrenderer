@@ -22,12 +22,10 @@
 struct basic_uniform {
     matrix4x4 modelview;
     matrix4x4 projection;
-    // A matrix used to transform the normal direction from local space to view
-    // space.
-    matrix4x4 normal_matrix;
+    matrix3x3 normal_obj2view;
 
     // Parameters of the light.
-    vector3 light_direction;  // Direction of directional light in view space
+    vector3 view_space_light_dir;
     vector3 light_color;
     vector3 ambient_color;
 
@@ -39,7 +37,7 @@ struct basic_uniform {
     struct texture *diffuse_texture;
 
     // Parameters used to calculate directional light shadows.
-    matrix4x4 normalized_light_space_matrix;
+    matrix4x4 normalized_light_space;
     struct texture *shadow_map;
 };
 

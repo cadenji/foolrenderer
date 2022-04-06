@@ -45,10 +45,9 @@ vector4 basic_vertex_shader(struct shader_context *output, const void *uniform,
     vector2 *out_texcoord = shader_context_vector2(output, TEXCOORD);
     *out_texcoord = attr->texcoord;
 
-    vector4 normal_in_view = matrix4x4_multiply_vector4(
-        unif->normal_matrix, vector3_to_4(attr->normal, 0.0f));
     vector3 *out_normal = shader_context_vector3(output, NORMAL);
-    *out_normal = vector4_to_3(normal_in_view);
+    *out_normal =
+        matrix3x3_multiply_vector3(unif->normal_obj2view, attr->normal);
 
     vector4 position_in_view = matrix4x4_multiply_vector4(
         unif->modelview, vector3_to_4(attr->position, 1.0f));
@@ -58,10 +57,10 @@ vector4 basic_vertex_shader(struct shader_context *output, const void *uniform,
     vector3 *out_light_space_position =
         shader_context_vector3(output, LIGHT_SPACE_POSITION);
     vector4 light_space_position =
-        matrix4x4_multiply_vector4(unif->normalized_light_space_matrix,
+        matrix4x4_multiply_vector4(unif->normalized_light_space,
                                    vector3_to_4(attr->position, 1.0f));
     // When calculating directional light shadows, the projection matrix
-    // contained in normalized_light_space_matrix is an orthogonal matrix, the w
+    // contained in normalized_light_space is an orthogonal matrix, the w
     // component is always equal to 1.0f, so perspective division is not
     // required.
     *out_light_space_position = vector4_to_3(light_space_position);
@@ -81,7 +80,7 @@ vector4 basic_fragment_shader(struct shader_context *input,
         vector3_multiply(unif->ambient_color, unif->ambient_reflectance);
 
     // Diffuse lighting.
-    float n_dot_l = vector3_dot(normal, unif->light_direction);
+    float n_dot_l = vector3_dot(normal, unif->view_space_light_dir);
     float diffuse_intensity = max_float(0.0f, n_dot_l);
     vector3 diffuse_lighting =
         vector3_multiply_scalar(unif->light_color, diffuse_intensity);
@@ -99,7 +98,8 @@ vector4 basic_fragment_shader(struct shader_context *input,
         view_direction = vector3_normalize(view_direction);
         // Calculate the halfway vector between the light direction and the view
         // direction.
-        vector3 halfway = vector3_add(view_direction, unif->light_direction);
+        vector3 halfway =
+            vector3_add(view_direction, unif->view_space_light_dir);
         halfway = vector3_normalize(halfway);
         float n_dot_h = vector3_dot(normal, halfway);
         float specular_intensity =

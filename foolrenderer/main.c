@@ -135,9 +135,9 @@ static void draw_model(struct mesh *mesh) {
     matrix4x4 light_view = matrix4x4_look_at(LIGHT_DIRECTION, VECTOR3_ZERO,
                                              (vector3){{0.0f, 1.0f, 0.0f}});
     matrix4x4 light_projection = matrix4x4_orthographic(1.5f, 1.5f, 0.1f, 2.5f);
-    matrix4x4 light_space_matrix =
+    matrix4x4 light_space =
         matrix4x4_multiply(light_projection, light_view);
-    shadow_uniform.light_space_matrix = light_space_matrix;
+    shadow_uniform.light_space = light_space;
 
     uint32_t triangle_count = mesh->triangle_count;
     for (size_t t = 0; t < triangle_count; t++) {
@@ -157,23 +157,19 @@ static void draw_model(struct mesh *mesh) {
     clear_framebuffer(framebuffer);
 
     struct basic_uniform uniform;
-    // No rotation, scaling, or translation of the model, so the model matrix is
-    // the identity matrix.
-    uniform.modelview = matrix4x4_look_at((vector3){{0.0f, 0.0f, 2.5f}},
-                                          (vector3){{0.0f, 0.0f, 0.0f}},
-                                          (vector3){{0.0f, 1.0f, 0.0f}});
+    matrix4x4 view = matrix4x4_look_at((vector3){{0.0f, 0.0f, 2.5f}},
+                                       (vector3){{0.0f, 0.0f, 0.0f}},
+                                       (vector3){{0.0f, 1.0f, 0.0f}});
+    // No rotation, scaling, or translation of the model, so the modelview
+    // matrix is the view matrix.
+    uniform.modelview = view;
     uniform.projection = matrix4x4_perspective(
         HALF_PI / 2.0f, IMAGE_WIDTH / IMAGE_HEIGHT, 0.1f, 5.0f);
-    // The normal matrix is the inverse transpose matrix of the original
-    // transformation matrix. And because the modelview matrix is actually the
-    // view matrix, it only contains rotation and translation. So the normal
-    // matrix in the view space is the modelview matrix (The inverse transpose
-    // of the rotation matrix is itself, translation can be ignored).
-    uniform.normal_matrix = uniform.modelview;
-    vector4 light_direction_in_view = matrix4x4_multiply_vector4(
-        uniform.modelview,
-        vector3_to_4(vector3_normalize(LIGHT_DIRECTION), 0.0f));
-    uniform.light_direction = vector4_to_3(light_direction_in_view);
+    // There is no non-uniform scaling so the normal transformation matrix is
+    // the 3x3 part of the modelview matrix.
+    uniform.normal_obj2view = matrix4x4_to_3x3(uniform.modelview);
+    uniform.view_space_light_dir = vector3_normalize(
+        matrix3x3_multiply_vector3(matrix4x4_to_3x3(view), LIGHT_DIRECTION));
     uniform.light_color = VECTOR3_ONE;
     uniform.ambient_color = (vector3){{0.1f, 0.1f, 0.1f}};
     uniform.ambient_reflectance = VECTOR3_ONE;
@@ -185,8 +181,8 @@ static void draw_model(struct mesh *mesh) {
                                     {0.0f, 0.5f, 0.0f, 0.5f},
                                     {0.0f, 0.0f, 0.5f, 0.5f},
                                     {0.0f, 0.0f, 0.0f, 1.0f}}};
-    uniform.normalized_light_space_matrix =
-        matrix4x4_multiply(normalized_matrix, light_space_matrix);
+    uniform.normalized_light_space =
+        matrix4x4_multiply(normalized_matrix, light_space);
     uniform.shadow_map = shadow_map;
 
     for (size_t t = 0; t < triangle_count; t++) {
