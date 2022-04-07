@@ -7,6 +7,12 @@
 
 #include <stdio.h>
 
+extern matrix3x3 matrix3x3_construct(vector3 col_1, vector3 col_2,
+                                     vector3 col_3);
+
+extern matrix4x4 matrix4x4_construct(vector4 col_1, vector4 col_2,
+                                     vector4 col_3, vector4 col_4);
+
 extern matrix3x3 matrix4x4_to_3x3(matrix4x4 m);
 
 extern matrix3x3 matrix3x3_multiply_scalar(matrix3x3 m, float scalar);

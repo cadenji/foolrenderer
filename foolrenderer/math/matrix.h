@@ -62,6 +62,21 @@ typedef struct matrix4x4 {
                         {0.0f, 0.0f, 0.0f, 0.0f}, \
                         {0.0f, 0.0f, 0.0f, 0.0f}}})
 
+inline matrix3x3 matrix3x3_construct(vector3 col_1, vector3 col_2,
+                                     vector3 col_3) {
+    return (matrix3x3){{{col_1.x, col_2.x, col_3.x},
+                        {col_1.y, col_2.y, col_3.y},
+                        {col_1.z, col_2.z, col_3.z}}};
+}
+
+inline matrix4x4 matrix4x4_construct(vector4 col_1, vector4 col_2,
+                                     vector4 col_3, vector4 col_4) {
+    return (matrix4x4){{{col_1.x, col_2.x, col_3.x, col_4.x},
+                        {col_1.y, col_2.y, col_3.y, col_4.y},
+                        {col_1.z, col_2.z, col_3.z, col_4.z},
+                        {col_1.w, col_2.w, col_3.w, col_4.w}}};
+}
+
 ///
 /// \brief Constructs a matrix3x3 from the upper-left of matrix4x4.
 ///
