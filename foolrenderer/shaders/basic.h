@@ -34,7 +34,8 @@ struct basic_uniform {
     vector3 diffuse_reflectance;
     vector3 specular_reflectance;
     float shininess;
-    struct texture *diffuse_texture;
+    struct texture *diffuse_map;
+    struct texture *normal_map;
 
     // Parameters used to calculate directional light shadows.
     matrix4x4 normalized_light_space;
@@ -44,6 +45,7 @@ struct basic_uniform {
 struct basic_vertex_attribute {
     vector3 position;
     vector3 normal;
+    vector4 tangent;
     vector2 texcoord;
 };
 

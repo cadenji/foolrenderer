@@ -53,7 +53,7 @@ static struct texture *load_texture(const char *filename) {
     }
     tga_image_flip_v(image_data, image_info);
 
-    struct texture *diffuse_texture = NULL;
+    struct texture *texture = NULL;
     if (tga_get_pixel_format(image_info) == TGA_PIXEL_RGB24) {
         uint32_t width = tga_get_image_width(image_info);
         uint32_t height = tga_get_image_height(image_info);
@@ -65,15 +65,15 @@ static struct texture *load_texture(const char *filename) {
                 endian_inversion(pixel, 3);
             }
         }
-        diffuse_texture = generate_texture(TEXTURE_FORMAT_RGBA8, width, height);
-        if (diffuse_texture != NULL) {
-            set_texture_pixels(diffuse_texture, image_data);
+        texture = generate_texture(TEXTURE_FORMAT_RGBA8, width, height);
+        if (texture != NULL) {
+            set_texture_pixels(texture, image_data);
         }
     }
 
     tga_free_data(image_data);
     tga_free_info(image_info);
-    return diffuse_texture;
+    return texture;
 }
 
 static void save_color_texture(struct texture *texture) {
@@ -110,7 +110,8 @@ static void save_color_texture(struct texture *texture) {
     tga_free_info(image_info);
 }
 
-static void draw_model(struct mesh *mesh) {
+static void draw_model(struct mesh *mesh, struct texture *diffuse_map,
+                       struct texture *normal_map) {
     struct framebuffer *shadow_framebuffer = generate_framebuffer();
     struct texture *shadow_map = generate_texture(
         TEXTURE_FORMAT_DEPTH_FLOAT, SHADOW_MAP_WIDTH, SHADOW_MAP_HEIGHT);
@@ -135,8 +136,7 @@ static void draw_model(struct mesh *mesh) {
     matrix4x4 light_view = matrix4x4_look_at(LIGHT_DIRECTION, VECTOR3_ZERO,
                                              (vector3){{0.0f, 1.0f, 0.0f}});
     matrix4x4 light_projection = matrix4x4_orthographic(1.5f, 1.5f, 0.1f, 2.5f);
-    matrix4x4 light_space =
-        matrix4x4_multiply(light_projection, light_view);
+    matrix4x4 light_space = matrix4x4_multiply(light_projection, light_view);
     shadow_uniform.light_space = light_space;
 
     uint32_t triangle_count = mesh->triangle_count;
@@ -176,7 +176,8 @@ static void draw_model(struct mesh *mesh) {
     uniform.diffuse_reflectance = VECTOR3_ONE;
     uniform.specular_reflectance = VECTOR3_ONE;
     uniform.shininess = 100.0f;
-    uniform.diffuse_texture = load_texture(mesh->diffuse_texture_path);
+    uniform.diffuse_map = diffuse_map;
+    uniform.normal_map = normal_map;
     matrix4x4 normalized_matrix = {{{0.5f, 0.0f, 0.0f, 0.5f},
                                     {0.0f, 0.5f, 0.0f, 0.5f},
                                     {0.0f, 0.0f, 0.5f, 0.5f},
@@ -191,12 +192,12 @@ static void draw_model(struct mesh *mesh) {
         for (uint32_t v = 0; v < 3; v++) {
             mesh_get_position(&attributes[v].position, mesh, t, v);
             mesh_get_normal(&attributes[v].normal, mesh, t, v);
+            mesh_get_tangent(&attributes[v].tangent, mesh, t, v);
             mesh_get_texcoord(&attributes[v].texcoord, mesh, t, v);
             attribute_ptrs[v] = attributes + v;
         }
         draw_triangle(framebuffer, &uniform, attribute_ptrs);
     }
-    delete_texture(uniform.diffuse_texture);
 
     save_color_texture(color_texture);
 
@@ -208,21 +209,21 @@ static void draw_model(struct mesh *mesh) {
     delete_framebuffer(framebuffer);
 }
 
-int main(int argc, char *argv[]) {
-    char *model_name;
-    if (argc < 2) {
-        model_name = "assets/suzanne/suzanne.obj";
-    } else {
-        model_name = argv[1];
-    }
-    // Load .obj data.
+int main(void) {
+    const char *model_path = "assets/suzanne/suzanne.obj";
+    const char *normal_map_path = "assets/suzanne/normal.tga";
+
+    // Load model data.
     struct mesh *mesh;
-    mesh = mesh_load(model_name);
+    mesh = mesh_load(model_path);
     if (mesh == NULL) {
         printf("Cannot load .obj file.\n");
         return 0;
     }
-    draw_model(mesh);
+    struct texture *normal_map = load_texture(normal_map_path);
+
+    draw_model(mesh, NULL, normal_map);
     mesh_release(mesh);
+    delete_texture(normal_map);
     return 0;
 }

@@ -15,9 +15,11 @@
 #include "texture.h"
 
 #define TEXCOORD 0
-#define NORMAL 0
-#define POSITION 1
-#define LIGHT_SPACE_POSITION 2
+#define POSITION 0
+#define LIGHT_SPACE_POSITION 1
+#define NORMAL 2
+#define TANGENT 3
+#define BITANGENT 4
 
 static float shadow_calculation(const struct texture *shadow_map,
                                 const vector3 *light_space_positon) {
@@ -45,10 +47,6 @@ vector4 basic_vertex_shader(struct shader_context *output, const void *uniform,
     vector2 *out_texcoord = shader_context_vector2(output, TEXCOORD);
     *out_texcoord = attr->texcoord;
 
-    vector3 *out_normal = shader_context_vector3(output, NORMAL);
-    *out_normal =
-        matrix3x3_multiply_vector3(unif->normal_obj2view, attr->normal);
-
     vector4 position_in_view = matrix4x4_multiply_vector4(
         unif->modelview, vector3_to_4(attr->position, 1.0f));
     vector3 *out_position = shader_context_vector3(output, POSITION);
@@ -56,14 +54,28 @@ vector4 basic_vertex_shader(struct shader_context *output, const void *uniform,
 
     vector3 *out_light_space_position =
         shader_context_vector3(output, LIGHT_SPACE_POSITION);
-    vector4 light_space_position =
-        matrix4x4_multiply_vector4(unif->normalized_light_space,
-                                   vector3_to_4(attr->position, 1.0f));
+    vector4 light_space_position = matrix4x4_multiply_vector4(
+        unif->normalized_light_space, vector3_to_4(attr->position, 1.0f));
     // When calculating directional light shadows, the projection matrix
     // contained in normalized_light_space is an orthogonal matrix, the w
     // component is always equal to 1.0f, so perspective division is not
     // required.
     *out_light_space_position = vector4_to_3(light_space_position);
+
+    // Calculate t,b,n vectors.
+    vector3 *out_normal = shader_context_vector3(output, NORMAL);
+    *out_normal =
+        matrix3x3_multiply_vector3(unif->normal_obj2view, attr->normal);
+
+    matrix3x3 dir_obj2view = matrix4x4_to_3x3(unif->modelview);
+
+    vector3 *out_tangent = shader_context_vector3(output, TANGENT);
+    *out_tangent =
+        matrix3x3_multiply_vector3(dir_obj2view, vector4_to_3(attr->tangent));
+
+    vector3 *out_bitangent = shader_context_vector3(output, BITANGENT);
+    *out_bitangent = vector3_multiply_scalar(
+        vector3_cross(*out_normal, *out_tangent), attr->tangent.w);
 
     return matrix4x4_multiply_vector4(unif->projection, position_in_view);
 }
@@ -71,9 +83,18 @@ vector4 basic_vertex_shader(struct shader_context *output, const void *uniform,
 vector4 basic_fragment_shader(struct shader_context *input,
                               const void *uniform) {
     const struct basic_uniform *unif = uniform;
+    vector2 *texcoord = shader_context_vector2(input, TEXCOORD);
 
-    vector3 *in_normal = shader_context_vector3(input, NORMAL);
-    vector3 normal = vector3_normalize(*in_normal);
+    // Get the normal in tangent space.
+    vector4 normal_map_data = (vector4){{0.5f, 0.5f, 1.0f, 1.0f}};
+    texture_sample(&normal_map_data, unif->normal_map, *texcoord);
+    vector3 normal = vector3_subtract_scalar(
+        vector3_multiply_scalar(vector4_to_3(normal_map_data), 2.0f), 1.0f);
+    // Transform the normal to view space
+    vector3 t = vector3_normalize(*shader_context_vector3(input, TANGENT));
+    vector3 b = vector3_normalize(*shader_context_vector3(input, BITANGENT));
+    vector3 n = vector3_normalize(*shader_context_vector3(input, NORMAL));
+    normal = matrix3x3_multiply_vector3(matrix3x3_construct(t, b, n), normal);
 
     // Ambient lighting.
     vector3 ambient_lighting =
@@ -110,10 +131,6 @@ vector4 basic_fragment_shader(struct shader_context *input,
             vector3_multiply(specular_lighting, unif->specular_reflectance);
     }
 
-    vector2 *texcoord = shader_context_vector2(input, TEXCOORD);
-    vector4 texture_color = VECTOR4_ONE;
-    texture_sample(&texture_color, unif->diffuse_texture, *texcoord);
-
     // Add shadow.
     vector3 *light_space_position =
         shader_context_vector3(input, LIGHT_SPACE_POSITION);
@@ -122,6 +139,8 @@ vector4 basic_fragment_shader(struct shader_context *input,
     diffuse_lighting = vector3_multiply_scalar(diffuse_lighting, visibility);
     specular_lighting = vector3_multiply_scalar(specular_lighting, visibility);
 
+    vector4 texture_color = VECTOR4_ONE;
+    texture_sample(&texture_color, unif->diffuse_map, *texcoord);
     vector3 fragment_color = vector3_add(ambient_lighting, diffuse_lighting);
     fragment_color =
         vector3_multiply(fragment_color, vector4_to_3(texture_color));
