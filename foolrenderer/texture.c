@@ -13,6 +13,8 @@
 #include "math/math_utility.h"
 #include "math/vector.h"
 
+#define FALLBACK_PIXEL VECTOR4_ONE
+
 struct texture {
     enum texture_format format;
     uint32_t width, height;
@@ -95,30 +97,24 @@ void *get_texture_pixels(struct texture *texture) {
 }
 
 enum texture_format get_texture_format(const struct texture *texture) {
-    // Do not check whether the texture points to a null pointer, because there
-    // is no simple way to return an error.
     return texture->format;
 }
 
 uint32_t get_texture_width(const struct texture *texture) {
-    // Do not check whether the texture points to a null pointer, because there
-    // is no simple way to return an error.
     return texture->width;
 }
 
 uint32_t get_texture_height(const struct texture *texture) {
-    // Do not check whether the texture points to a null pointer, because there
-    // is no simple way to return an error.
     return texture->height;
 }
 
-bool texture_sample(vector4 *pixel, const struct texture *texture,
-                    vector2 texture_coordinate) {
+vector4 texture_sample(const struct texture *texture, vector2 texcoord) {
     if (texture == NULL) {
-        return false;
+        return FALLBACK_PIXEL;
     }
-    float u = clamp01_float(texture_coordinate.u);
-    float v = clamp01_float(texture_coordinate.v);
+
+    float u = clamp01_float(texcoord.u);
+    float v = clamp01_float(texcoord.v);
     uint32_t u_index = (uint32_t)(u * texture->width);
     uint32_t v_index = (uint32_t)(v * texture->height);
     // Prevent array access out of bounds.
@@ -126,20 +122,19 @@ bool texture_sample(vector4 *pixel, const struct texture *texture,
     v_index = v_index >= texture->height ? texture->height - 1 : v_index;
     size_t pixel_offset = (size_t)u_index + v_index * texture->width;
 
+    vector4 pixel = FALLBACK_PIXEL;
     if (texture->format == TEXTURE_FORMAT_RGBA8) {
         const uint8_t *target = (uint8_t *)texture->pixels + pixel_offset * 4;
-        pixel->r = target[0] / 255.0f;
-        pixel->g = target[1] / 255.0f;
-        pixel->b = target[2] / 255.0f;
-        pixel->a = target[3] / 255.0f;
-        return true;
+        pixel.r = target[0] / 255.0f;
+        pixel.g = target[1] / 255.0f;
+        pixel.b = target[2] / 255.0f;
+        pixel.a = target[3] / 255.0f;
     } else if (texture->format == TEXTURE_FORMAT_DEPTH_FLOAT) {
         const float *target = (float *)texture->pixels + pixel_offset;
-        pixel->r = *target;
-        pixel->g = *target;
-        pixel->b = *target;
-        pixel->a = 1.0f;
-        return true;
+        pixel.r = *target;
+        pixel.g = *target;
+        pixel.b = *target;
+        pixel.a = 1.0f;
     }
-    return false;
+    return pixel;
 }

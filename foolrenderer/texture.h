@@ -32,16 +32,27 @@ enum texture_format {
 struct texture;
 
 ///
-/// \brief Creates a texture object.
+/// \brief Creates a texture.
+///
+/// Returns a null pointer if the width or height value is equal to 0. Returns a
+/// null pointer if the internal_format parameter is an invalid value. Returns a
+/// null pointer if memory allocation fails.
 ///
 /// \param internal_format The pixel format used internally by the texture.
-/// \param width The width of the texture, the value must be greater than 0.
-/// \param height The height of the texture, the value must be greater than 0.
-/// \return Returns the texture pointer if successful, otherwise returns NULL.
+/// \param width The width of the texture.
+/// \param height The height of the texture.
+/// \return Returns a texture pointer on success, null pointer on failure.
 ///
 struct texture *generate_texture(enum texture_format internal_format,
                                  uint32_t width, uint32_t height);
 
+///
+/// \brief Destroys the texture created by generate_texture().
+///
+/// If texture is a null pointer, the function does nothing.
+///
+/// \param texture Pointer to the texture to destroy.
+///
 void delete_texture(struct texture *texture);
 
 ///
@@ -52,21 +63,65 @@ void delete_texture(struct texture *texture);
 /// and each component is an unsigned byte type. The origin of the image should
 /// be in the bottom-left corner.
 ///
+/// If texture or pixels is a null pointer, the data write fails. The behavior
+/// is undefined if the size of the array pointed to by the pixel is smaller
+/// than the data size required by the texture.
+///
 /// \param texture The texture pointer.
-/// \param pixels Pointer to pixel data source.
-/// \return Returns true if the data is written successfully.
+/// \param pixels Pointer to the pixel data source.
+/// \return Returns true on success, false on failure.
 ///
 bool set_texture_pixels(struct texture *texture, const void *pixels);
 
+///
+/// \brief Gets pixel data in the texture.
+///
+/// If texture is a null pointer, returns a null pointer.
+///
+/// \param texture Pointer to the texture to get.
+/// \return Returns a pixel data pointer on success, null pointer on failure.
+///
 void *get_texture_pixels(struct texture *texture);
 
+///
+/// \brief Gets the texture format of the texture.
+///
+/// The behavior is undefined if texture is a null pointer.
+///
+/// \param texture Pointer to the texture to get.
+/// \return Returns texture format.
+///
 enum texture_format get_texture_format(const struct texture *texture);
 
+///
+/// \brief Gets the width of the texture.
+///
+/// The behavior is undefined if texture is a null pointer.
+///
+/// \param texture Pointer to the texture to get.
+/// \return Returns texture width.
+///
 uint32_t get_texture_width(const struct texture *texture);
 
+///
+/// \brief Gets the height of the texture.
+///
+/// The behavior is undefined if texture is a null pointer.
+///
+/// \param texture Pointer to the texture to get.
+/// \return Returns texture height.
+///
 uint32_t get_texture_height(const struct texture *texture);
 
-bool texture_sample(vector4 *pixel, const struct texture *texture,
-                    vector2 texture_coordinate);
+///
+/// \brief Retrieves pixel from the texture.
+///
+/// If texture is a null pointer, returns a fallback pixel value (1,1,1,1).
+///
+/// \param texture Pointer to the texture to retrieve.
+/// \param texcoord Texture coordinate at which the texture will be sampled.
+/// \return Returns pixel on success. Returns fallback pixel on failure.
+///
+vector4 texture_sample(const struct texture *texture, vector2 texcoord);
 
 #endif  // FOOLRENDERER_TEXTURE_H_

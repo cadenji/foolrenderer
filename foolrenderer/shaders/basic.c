@@ -30,8 +30,7 @@ static float shadow_calculation(const struct texture *shadow_map,
         vector2 shadow_map_coord;
         shadow_map_coord.u = light_space_positon->x;
         shadow_map_coord.v = light_space_positon->y;
-        vector4 temp;
-        texture_sample(&temp, shadow_map, shadow_map_coord);
+        vector4 temp = texture_sample(shadow_map, shadow_map_coord);
         float closest_depth = temp.r;
         float bias = 0.005f;  // Slove shadow acne.
         visibility = current_depth - bias > closest_depth ? 0.1f : 1.0f;
@@ -86,8 +85,7 @@ vector4 basic_fragment_shader(struct shader_context *input,
     vector2 *texcoord = shader_context_vector2(input, TEXCOORD);
 
     // Get the normal in tangent space.
-    vector4 normal_map_data = (vector4){{0.5f, 0.5f, 1.0f, 1.0f}};
-    texture_sample(&normal_map_data, unif->normal_map, *texcoord);
+    vector4 normal_map_data = texture_sample(unif->normal_map, *texcoord);
     vector3 normal = vector3_subtract_scalar(
         vector3_multiply_scalar(vector4_to_3(normal_map_data), 2.0f), 1.0f);
     // Transform the normal to view space
@@ -139,8 +137,7 @@ vector4 basic_fragment_shader(struct shader_context *input,
     diffuse_lighting = vector3_multiply_scalar(diffuse_lighting, visibility);
     specular_lighting = vector3_multiply_scalar(specular_lighting, visibility);
 
-    vector4 texture_color = VECTOR4_ONE;
-    texture_sample(&texture_color, unif->diffuse_map, *texcoord);
+    vector4 texture_color = texture_sample(unif->diffuse_map, *texcoord);
     vector3 fragment_color = vector3_add(ambient_lighting, diffuse_lighting);
     fragment_color =
         vector3_multiply(fragment_color, vector4_to_3(texture_color));
