@@ -120,16 +120,10 @@ void clear_framebuffer(struct framebuffer *framebuffer) {
 }
 
 uint32_t get_framebuffer_width(const struct framebuffer *framebuffer) {
-    if (framebuffer == NULL) {
-        return 0;
-    }
     return framebuffer->width;
 }
 
 uint32_t get_framebuffer_height(const struct framebuffer *framebuffer) {
-    if (framebuffer == NULL) {
-        return 0;
-    }
     return framebuffer->height;
 }
 
