@@ -164,7 +164,7 @@ static void draw_model(struct mesh *mesh, struct texture *diffuse_map,
     // matrix is the view matrix.
     uniform.modelview = view;
     uniform.projection = matrix4x4_perspective(
-        HALF_PI / 2.0f, IMAGE_WIDTH / IMAGE_HEIGHT, 0.1f, 5.0f);
+        PI / 4.0f, IMAGE_WIDTH / IMAGE_HEIGHT, 0.1f, 5.0f);
     // There is no non-uniform scaling so the normal transformation matrix is
     // the 3x3 part of the modelview matrix.
     uniform.normal_obj2view = matrix4x4_to_3x3(uniform.modelview);
