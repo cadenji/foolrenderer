@@ -13,6 +13,7 @@
 #define PI (3.1415926535897932f)
 #define HALF_PI (1.57079632679f)
 #define INVERSE_PI (0.31830988618f)
+#define GAMMA (2.2f)
 
 inline int32_t max_int32(int32_t a, int32_t b) { return a > b ? a : b; }
 

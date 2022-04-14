@@ -120,7 +120,7 @@ static void draw_model(struct mesh *mesh, struct texture *diffuse_map,
 
     struct framebuffer *framebuffer = generate_framebuffer();
     struct texture *color_texture =
-        generate_texture(TEXTURE_FORMAT_RGBA8, IMAGE_WIDTH, IMAGE_HEIGHT);
+        generate_texture(TEXTURE_FORMAT_SRGB8_A8, IMAGE_WIDTH, IMAGE_HEIGHT);
     struct texture *depth_texture =
         generate_texture(TEXTURE_FORMAT_DEPTH_FLOAT, IMAGE_WIDTH, IMAGE_HEIGHT);
     attach_texture_to_framebuffer(framebuffer, COLOR_ATTACHMENT, color_texture);
@@ -171,7 +171,7 @@ static void draw_model(struct mesh *mesh, struct texture *diffuse_map,
     uniform.view_space_light_dir = vector3_normalize(
         matrix3x3_multiply_vector3(matrix4x4_to_3x3(view), LIGHT_DIRECTION));
     uniform.light_color = VECTOR3_ONE;
-    uniform.ambient_color = (vector3){{0.1f, 0.1f, 0.1f}};
+    uniform.ambient_color = (vector3){{0.01f, 0.01f, 0.01f}};
     uniform.ambient_reflectance = VECTOR3_ONE;
     uniform.diffuse_reflectance = VECTOR3_ONE;
     uniform.specular_reflectance = VECTOR3_ONE;

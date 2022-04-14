@@ -57,7 +57,8 @@ bool attach_texture_to_framebuffer(struct framebuffer *framebuffer,
         enum texture_format format = get_texture_format(texture);
         switch (attachment) {
             case COLOR_ATTACHMENT:
-                if (format == TEXTURE_FORMAT_RGBA8) {
+                if (format == TEXTURE_FORMAT_RGBA8 ||
+                    format == TEXTURE_FORMAT_SRGB8_A8) {
                     framebuffer->color_buffer = texture;
                     result = true;
                 }

@@ -49,7 +49,7 @@ void delete_framebuffer(struct framebuffer *framebuffer);
 ///
 /// Attachment Type  | Texture Format
 /// ---------------- | -----------------------------
-/// COLOR_ATTACHMENT | TEXTURE_FORMAT_RGBA8
+/// COLOR_ATTACHMENT | TEXTURE_FORMAT_RGBA8, TEXTURE_FORMAT_SRGB8_A8
 /// DEPTH_ATTACHMENT | TEXTURE_FORMAT_DEPTH_FLOAT
 ///
 /// If the texture is a null pointer detachs the current type buffer. Fails if

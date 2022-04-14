@@ -18,6 +18,13 @@ enum texture_format {
     ///
     TEXTURE_FORMAT_RGBA8,
     ///
+    /// The components included in this format are R, G, B, A, and each
+    /// component is an 8-bit unsigned integer type. And the color values of the
+    /// three components of R, G, and B are considered to be encoded in the sRGB
+    /// color space.
+    ///
+    TEXTURE_FORMAT_SRGB8_A8,
+    ///
     /// The format used to store depth information, the type is float.
     ///
     TEXTURE_FORMAT_DEPTH_FLOAT
@@ -115,6 +122,9 @@ uint32_t get_texture_height(const struct texture *texture);
 
 ///
 /// \brief Retrieves pixel from the texture.
+///
+/// If the texture's format is sRGB encoded, the function will inverse-correct
+/// pixel values to linear color space.
 ///
 /// If texture is a null pointer, returns a fallback pixel value (1,1,1,1).
 ///

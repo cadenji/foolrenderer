@@ -42,15 +42,34 @@ static fragment_shader fs = NULL;
 static uint32_t framebuffer_width = 0;
 static uint32_t framebuffer_height = 0;
 static uint8_t *color_buffer = NULL;
+static bool is_srgb_encoding = false;
 static float *depth_buffer = NULL;
 
 static void parse_framebuffer(struct framebuffer *framebuffer) {
     framebuffer_width = get_framebuffer_width(framebuffer);
     framebuffer_height = get_framebuffer_height(framebuffer);
-    color_buffer = get_texture_pixels(
-        get_framebuffer_attachment(framebuffer, COLOR_ATTACHMENT));
-    depth_buffer = get_texture_pixels(
-        get_framebuffer_attachment(framebuffer, DEPTH_ATTACHMENT));
+
+    struct texture *color_attachment =
+        get_framebuffer_attachment(framebuffer, COLOR_ATTACHMENT);
+    if (color_attachment == NULL) {
+        color_buffer = NULL;
+        is_srgb_encoding = false;
+    } else {
+        color_buffer = get_texture_pixels(color_attachment);
+        if (get_texture_format(color_attachment) == TEXTURE_FORMAT_SRGB8_A8) {
+            is_srgb_encoding = true;
+        } else {
+            is_srgb_encoding = false;
+        }
+    }
+
+    struct texture *depth_attachment =
+        get_framebuffer_attachment(framebuffer, DEPTH_ATTACHMENT);
+    if (depth_attachment == NULL) {
+        depth_buffer = NULL;
+    } else {
+        depth_buffer = get_texture_pixels(depth_attachment);
+    }
 }
 
 // The vertex position should be in clippig space.
@@ -196,6 +215,26 @@ static void set_fragment_shader_input(struct shader_context *result,
     INTERPOLATION_HELPER(vector4, 4);
 }
 
+static void write_color(uint8_t *pixel, vector4 color) {
+    color.r = clamp01_float(color.r);
+    color.g = clamp01_float(color.g);
+    color.b = clamp01_float(color.b);
+    color.a = clamp01_float(color.a);
+    if (is_srgb_encoding) {
+        // Perform gamma correction if the color buffer to be written is sRGB
+        // encoded. This is just an approximate conversion method. A discussion
+        // of nonlinear color spaces can be found in NVIDIA's GPU Gems 3:
+        // https://developer.nvidia.com/gpugems/gpugems3/part-iv-image-effects/chapter-24-importance-being-linear
+        color.r = powf(color.r, 1.0f / GAMMA);
+        color.g = powf(color.g, 1.0f / GAMMA);
+        color.b = powf(color.b, 1.0f / GAMMA);
+    }
+    pixel[0] = color.r * 0xFF;
+    pixel[1] = color.g * 0xFF;
+    pixel[2] = color.b * 0xFF;
+    pixel[3] = color.a * 0xFF;
+}
+
 void set_viewport(int left, int bottom, uint32_t width, uint32_t height) {
     viewport.left = left;
     viewport.bottom = bottom;
@@ -284,10 +323,7 @@ void draw_triangle(struct framebuffer *framebuffer, const void *uniform,
             vector4 fragment_color = fs(&input, uniform);
             if (color_buffer != NULL) {
                 uint8_t *pixel = color_buffer + (y * framebuffer_width + x) * 4;
-                pixel[0] = clamp01_float(fragment_color.r) * 0xFF;
-                pixel[1] = clamp01_float(fragment_color.g) * 0xFF;
-                pixel[2] = clamp01_float(fragment_color.b) * 0xFF;
-                pixel[3] = clamp01_float(fragment_color.a) * 0xFF;
+                write_color(pixel, fragment_color);
             }
         }
     }
