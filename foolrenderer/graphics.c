@@ -21,8 +21,8 @@ struct vertex {
     vector4 position;
     vector2 position_window;
     float depth;
-    // The inverse of the w component of the vertex position in the clipping
-    // space. Will be used for perspective correct interpolation.
+    // The inverse of the w component of the vertex position in the clip space.
+    // Will be used for perspective correct interpolation.
     float inverse_w;
 };
 
@@ -85,8 +85,8 @@ static bool clipping_test(const struct vertex *vertex) {
     return false;
 }
 
-// Transform vertex position from clipping space to normalized device
-// coordinates (NDC).
+// Transform vertex position from clip space to normalized device coordinates
+// (NDC).
 static inline void perspective_division(struct vertex *vertex) {
     vector4 *position = &vertex->position;
     float inverse_w = 1.0f / position->w;
@@ -97,7 +97,7 @@ static inline void perspective_division(struct vertex *vertex) {
     position->w = 1.0f;
 }
 
-// Transform the x and y components of position from the NDC to the window
+// Transform the x and y components of position from the NDC to the screen
 // space, transform the value range of the z component from [-1, 1] to [0, 1].
 static inline void viewport_transform(struct vertex *vertex) {
     vector4 *position = &vertex->position;
@@ -142,7 +142,7 @@ static inline bool depth_test(uint32_t x, uint32_t y,
     // section 3.6.1 equation 3.10:
     // https://www.khronos.org/registry/OpenGL/specs/gl/glspec33.core.pdf
     // For the purpose of reducing computational overhead, the calculated depth
-    // value is in the window space, and the depth value in this space is not
+    // value is in the screen space, and the depth value in this space is not
     // linear. Although it is enough for depth testing.
     float new_depth = barycentric[0] * vertices[0].depth +
                       barycentric[1] * vertices[1].depth +
@@ -284,7 +284,7 @@ void draw_triangle(struct framebuffer *framebuffer, const void *uniform,
 
     // Traverse find the pixels covered by the triangle. If found, compute the
     // barycentric coordinates of the point in the triangle.
-    // No need to traverses pixels outside the window.
+    // No need to traverses pixels outside the screen.
     uint32_t x_min = clamp_int32(floorf(bound.min.x), 0, framebuffer_width - 1);
     uint32_t y_min =
         clamp_int32(floorf(bound.min.y), 0, framebuffer_height - 1);

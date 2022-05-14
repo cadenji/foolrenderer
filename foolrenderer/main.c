@@ -99,7 +99,7 @@ static void save_color_texture(struct texture *texture) {
             endian_inversion(image_pixel, 3);
         }
     }
-    // This program uses OpenGL style coordinate system, the origin of window
+    // This program uses OpenGL style coordinate system, the origin of screen
     // space is in the bottom-left corner. But the tgafunc default image origin
     // is in the upper-left corner, so need to flip the image in the Y-axis
     // direction.

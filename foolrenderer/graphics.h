@@ -24,9 +24,9 @@
 /// vertex shader needs to process，such as vertex positions, normal and texture
 /// coordinates.
 ///
-/// The vertex shader returns the clipping space position of the vertex, the
-/// clipping space should follow the OpenGL convention, using the left-handed
-/// coordinate system, the near plane is at z=-1, and the far plane is at z=1.
+/// The vertex shader returns the clip space position of the vertex, the clip
+/// space should follow the OpenGL convention, using the left-handed coordinate
+/// system, the near plane is at z=-1, and the far plane is at z=1.
 ///
 /// Any other output produced needs to be saved in the shader context. These
 /// output values will be interpolated across the face of the rendered
