@@ -17,7 +17,7 @@ vector4 shadow_casting_vertex_shader(struct shader_context *output,
     const struct shadow_casting_vertex_attribute *attr = vertex_attribute;
 
     vector4 position = vector3_to_4(attr->position, 1.0f);
-    return matrix4x4_multiply_vector4(unif->light_space, position);
+    return matrix4x4_multiply_vector4(unif->local2clip, position);
 }
 
 vector4 shadow_casting_fragment_shader(struct shader_context *input,

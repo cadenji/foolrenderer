@@ -12,22 +12,23 @@
 #include "texture.h"
 
 // The basic shader implements Blinn-Phong reflection model with Phong shading.
-// The lighting calculation is performed in the view space. One advantage of
-// this is that the camera position is always at (0,0,0), and there is no need
-// to provide the camera position to the shader.
 // References:
 // https://en.wikipedia.org/wiki/Blinn%E2%80%93Phong_reflection_model
 // https://en.wikipedia.org/wiki/Phong_shading
 
 struct basic_uniform {
-    matrix4x4 modelview;
-    matrix4x4 projection;
-    matrix3x3 normal_obj2view;
+    matrix4x4 local2view;
+    matrix4x4 view2clip;
+    matrix3x3 loacl2view_direction;
+    matrix3x3 local2view_normal;
+    // In light space, each component of position should be in [0,1].
+    matrix4x4 local2light;
 
-    // Parameters of the light.
-    vector3 view_space_light_dir;
+    // Parameters of the directional light.
+    vector3 light_direction;  // Normalized light direction in view space.
     vector3 light_color;
     vector3 ambient_color;
+    struct texture *shadow_map;
 
     // Parameters of the material.
     vector3 ambient_reflectance;
@@ -36,10 +37,6 @@ struct basic_uniform {
     float shininess;
     struct texture *diffuse_map;
     struct texture *normal_map;
-
-    // Parameters used to calculate directional light shadows.
-    matrix4x4 normalized_light_space;
-    struct texture *shadow_map;
 };
 
 struct basic_vertex_attribute {

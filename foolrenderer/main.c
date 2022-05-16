@@ -133,11 +133,14 @@ static void draw_model(struct mesh *mesh, struct texture *diffuse_map,
     clear_framebuffer(shadow_framebuffer);
 
     struct shadow_casting_uniform shadow_uniform;
-    matrix4x4 light_view = matrix4x4_look_at(LIGHT_DIRECTION, VECTOR3_ZERO,
-                                             (vector3){{0.0f, 1.0f, 0.0f}});
-    matrix4x4 light_projection = matrix4x4_orthographic(1.5f, 1.5f, 0.1f, 2.5f);
-    matrix4x4 light_space = matrix4x4_multiply(light_projection, light_view);
-    shadow_uniform.light_space = light_space;
+    matrix4x4 light_world2view = matrix4x4_look_at(
+        LIGHT_DIRECTION, VECTOR3_ZERO, (vector3){{0.0f, 1.0f, 0.0f}});
+    matrix4x4 light_view2clip = matrix4x4_orthographic(1.5f, 1.5f, 0.1f, 2.5f);
+    matrix4x4 light_world2clip =
+        matrix4x4_multiply(light_view2clip, light_world2view);
+    // No rotation, scaling, or translation of the model, so the local2clip
+    // matrix is the world2clip matrix.
+    shadow_uniform.local2clip = light_world2clip;
 
     uint32_t triangle_count = mesh->triangle_count;
     for (size_t t = 0; t < triangle_count; t++) {
@@ -157,19 +160,20 @@ static void draw_model(struct mesh *mesh, struct texture *diffuse_map,
     clear_framebuffer(framebuffer);
 
     struct basic_uniform uniform;
-    matrix4x4 view = matrix4x4_look_at((vector3){{0.0f, 0.0f, 2.5f}},
-                                       (vector3){{0.0f, 0.0f, 0.0f}},
-                                       (vector3){{0.0f, 1.0f, 0.0f}});
-    // No rotation, scaling, or translation of the model, so the modelview
-    // matrix is the view matrix.
-    uniform.modelview = view;
-    uniform.projection = matrix4x4_perspective(
+    matrix4x4 world2view = matrix4x4_look_at((vector3){{0.0f, 0.0f, 2.5f}},
+                                             (vector3){{0.0f, 0.0f, 0.0f}},
+                                             (vector3){{0.0f, 1.0f, 0.0f}});
+    // No rotation, scaling, or translation of the model, so the local2view
+    // matrix is the world2view matrix.
+    uniform.local2view = world2view;
+    uniform.view2clip = matrix4x4_perspective(
         PI / 4.0f, IMAGE_WIDTH / IMAGE_HEIGHT, 0.1f, 5.0f);
+    uniform.loacl2view_direction = matrix4x4_to_3x3(uniform.local2view);
     // There is no non-uniform scaling so the normal transformation matrix is
-    // the 3x3 part of the modelview matrix.
-    uniform.normal_obj2view = matrix4x4_to_3x3(uniform.modelview);
-    uniform.view_space_light_dir = vector3_normalize(
-        matrix3x3_multiply_vector3(matrix4x4_to_3x3(view), LIGHT_DIRECTION));
+    // the direction transformation matrix.
+    uniform.local2view_normal = uniform.loacl2view_direction;
+    uniform.light_direction = vector3_normalize(matrix3x3_multiply_vector3(
+        matrix4x4_to_3x3(world2view), LIGHT_DIRECTION));
     uniform.light_color = VECTOR3_ONE;
     uniform.ambient_color = (vector3){{0.01f, 0.01f, 0.01f}};
     uniform.ambient_reflectance = VECTOR3_ONE;
@@ -178,12 +182,12 @@ static void draw_model(struct mesh *mesh, struct texture *diffuse_map,
     uniform.shininess = 100.0f;
     uniform.diffuse_map = diffuse_map;
     uniform.normal_map = normal_map;
-    matrix4x4 normalized_matrix = {{{0.5f, 0.0f, 0.0f, 0.5f},
-                                    {0.0f, 0.5f, 0.0f, 0.5f},
-                                    {0.0f, 0.0f, 0.5f, 0.5f},
-                                    {0.0f, 0.0f, 0.0f, 1.0f}}};
-    uniform.normalized_light_space =
-        matrix4x4_multiply(normalized_matrix, light_space);
+    // Remap each component of position from [-1, 1] to [0, 1].
+    matrix4x4 remap_matrix = {{{0.5f, 0.0f, 0.0f, 0.5f},
+                               {0.0f, 0.5f, 0.0f, 0.5f},
+                               {0.0f, 0.0f, 0.5f, 0.5f},
+                               {0.0f, 0.0f, 0.0f, 1.0f}}};
+    uniform.local2light = matrix4x4_multiply(remap_matrix, light_world2clip);
     uniform.shadow_map = shadow_map;
 
     for (size_t t = 0; t < triangle_count; t++) {

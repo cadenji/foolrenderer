@@ -15,7 +15,7 @@
 // https://en.wikipedia.org/wiki/Shadow_mapping
 
 struct shadow_casting_uniform {
-    matrix4x4 light_space;
+    matrix4x4 local2clip;
 };
 
 struct shadow_casting_vertex_attribute {
