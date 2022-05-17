@@ -7,26 +7,26 @@
 
 #include <stdint.h>
 
-extern int32_t max_int32(int32_t a, int32_t b);
+extern int32_t int32_max(int32_t a, int32_t b);
 
-extern int32_t min_int32(int32_t a, int32_t b);
+extern int32_t int32_min(int32_t a, int32_t b);
 
-extern int32_t clamp_int32(int32_t n, int32_t min, int32_t max);
+extern int32_t int32_clamp(int32_t n, int32_t min, int32_t max);
 
-extern int32_t clamp01_int32(int32_t n);
+extern int32_t int32_clamp01(int32_t n);
 
-extern uint32_t max_uint32(uint32_t a, uint32_t b);
+extern uint32_t uint32_max(uint32_t a, uint32_t b);
 
-extern uint32_t min_uint32(uint32_t a, uint32_t b);
+extern uint32_t uint32_min(uint32_t a, uint32_t b);
 
-extern uint32_t clamp_uint32(uint32_t n, uint32_t min, uint32_t max);
+extern uint32_t uint32_clamp(uint32_t n, uint32_t min, uint32_t max);
 
-extern uint32_t clamp01_uint32(uint32_t n);
+extern uint32_t uint32_clamp01(uint32_t n);
 
-extern float max_float(float a, float b);
+extern float float_max(float a, float b);
 
-extern float min_float(float a, float b);
+extern float float_min(float a, float b);
 
-extern float clamp_float(float n, float min, float max);
+extern float float_clamp(float n, float min, float max);
 
-extern float clamp01_float(float n);
+extern float float_clamp01(float n);

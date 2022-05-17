@@ -116,8 +116,8 @@ vector4 texture_sample(const struct texture *texture, vector2 texcoord) {
         return FALLBACK_PIXEL;
     }
 
-    float u = clamp01_float(texcoord.u);
-    float v = clamp01_float(texcoord.v);
+    float u = float_clamp01(texcoord.u);
+    float v = float_clamp01(texcoord.v);
     uint32_t u_index = (uint32_t)(u * texture->width);
     uint32_t v_index = (uint32_t)(v * texture->height);
     // Prevent array access out of bounds.

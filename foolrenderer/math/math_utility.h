@@ -12,34 +12,34 @@
 #define PI (3.1415926535897932f)
 #define GAMMA (2.2f)
 
-inline int32_t max_int32(int32_t a, int32_t b) { return a > b ? a : b; }
+inline int32_t int32_max(int32_t a, int32_t b) { return a > b ? a : b; }
 
-inline int32_t min_int32(int32_t a, int32_t b) { return a < b ? a : b; }
+inline int32_t int32_min(int32_t a, int32_t b) { return a < b ? a : b; }
 
-inline int32_t clamp_int32(int32_t n, int32_t min, int32_t max) {
-    return min_int32(max_int32(n, min), max);
+inline int32_t int32_clamp(int32_t n, int32_t min, int32_t max) {
+    return int32_min(int32_max(n, min), max);
 }
 
-inline int32_t clamp01_int32(int32_t n) { return clamp_int32(n, 0, 1); }
+inline int32_t int32_clamp01(int32_t n) { return int32_clamp(n, 0, 1); }
 
-inline uint32_t max_uint32(uint32_t a, uint32_t b) { return a > b ? a : b; }
+inline uint32_t uint32_max(uint32_t a, uint32_t b) { return a > b ? a : b; }
 
-inline uint32_t min_uint32(uint32_t a, uint32_t b) { return a < b ? a : b; }
+inline uint32_t uint32_min(uint32_t a, uint32_t b) { return a < b ? a : b; }
 
-inline uint32_t clamp_uint32(uint32_t n, uint32_t min, uint32_t max) {
-    return min_uint32(max_uint32(n, min), max);
+inline uint32_t uint32_clamp(uint32_t n, uint32_t min, uint32_t max) {
+    return uint32_min(uint32_max(n, min), max);
 }
 
-inline uint32_t clamp01_uint32(uint32_t n) { return clamp_uint32(n, 0, 1); }
+inline uint32_t uint32_clamp01(uint32_t n) { return uint32_clamp(n, 0, 1); }
 
-inline float max_float(float a, float b) { return a > b ? a : b; }
+inline float float_max(float a, float b) { return a > b ? a : b; }
 
-inline float min_float(float a, float b) { return a < b ? a : b; }
+inline float float_min(float a, float b) { return a < b ? a : b; }
 
-inline float clamp_float(float n, float min, float max) {
-    return min_float(max_float(n, min), max);
+inline float float_clamp(float n, float min, float max) {
+    return float_min(float_max(n, min), max);
 }
 
-inline float clamp01_float(float n) { return clamp_float(n, 0.0f, 1.0f); }
+inline float float_clamp01(float n) { return float_clamp(n, 0.0f, 1.0f); }
 
 #endif  // FOOLRENDERER_MATH_MATH_UTILITY_H_

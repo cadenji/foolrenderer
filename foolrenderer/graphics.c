@@ -114,10 +114,10 @@ static inline void update_bounding_box(struct bounding_box *bound,
     const vector2 *position = &vertex->position_window;
     vector2 *min = &bound->min;
     vector2 *max = &bound->max;
-    min->x = min_float(min->x, position->x);
-    min->y = min_float(min->y, position->y);
-    max->x = max_float(max->x, position->x);
-    max->y = max_float(max->y, position->y);
+    min->x = float_min(min->x, position->x);
+    min->y = float_min(min->y, position->y);
+    max->x = float_max(max->x, position->x);
+    max->y = float_max(max->y, position->y);
 }
 
 // Computes the determinant of a 2x2 matrix composed of vectors (c-a) and (b-a).
@@ -216,10 +216,10 @@ static void set_fragment_shader_input(struct shader_context *result,
 }
 
 static void write_color(uint8_t *pixel, vector4 color) {
-    color.r = clamp01_float(color.r);
-    color.g = clamp01_float(color.g);
-    color.b = clamp01_float(color.b);
-    color.a = clamp01_float(color.a);
+    color.r = float_clamp01(color.r);
+    color.g = float_clamp01(color.g);
+    color.b = float_clamp01(color.b);
+    color.a = float_clamp01(color.a);
     if (is_srgb_encoding) {
         // Perform gamma correction if the color buffer to be written is sRGB
         // encoded. This is just an approximate conversion method. A discussion
@@ -285,12 +285,12 @@ void draw_triangle(struct framebuffer *framebuffer, const void *uniform,
     // Traverse find the pixels covered by the triangle. If found, compute the
     // barycentric coordinates of the point in the triangle.
     // No need to traverses pixels outside the screen.
-    uint32_t x_min = clamp_int32(floorf(bound.min.x), 0, framebuffer_width - 1);
+    uint32_t x_min = int32_clamp(floorf(bound.min.x), 0, framebuffer_width - 1);
     uint32_t y_min =
-        clamp_int32(floorf(bound.min.y), 0, framebuffer_height - 1);
-    uint32_t x_max = clamp_int32(floorf(bound.max.x), 0, framebuffer_width - 1);
+        int32_clamp(floorf(bound.min.y), 0, framebuffer_height - 1);
+    uint32_t x_max = int32_clamp(floorf(bound.max.x), 0, framebuffer_width - 1);
     uint32_t y_max =
-        clamp_int32(floorf(bound.max.y), 0, framebuffer_height - 1);
+        int32_clamp(floorf(bound.max.y), 0, framebuffer_height - 1);
 
     for (uint32_t y = y_min; y <= y_max; y++) {
         for (uint32_t x = x_min; x <= x_max; x++) {

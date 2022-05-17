@@ -40,9 +40,9 @@ void delete_framebuffer(struct framebuffer *framebuffer) { free(framebuffer); }
         if (buffer != NULL) {                                                  \
             uint32_t buffer_width = get_texture_width(buffer);                 \
             uint32_t buffer_height = get_texture_height(buffer);               \
-            framebuffer->width = min_uint32(framebuffer->width, buffer_width); \
+            framebuffer->width = uint32_min(framebuffer->width, buffer_width); \
             framebuffer->height =                                              \
-                min_uint32(framebuffer->height, buffer_height);                \
+                uint32_min(framebuffer->height, buffer_height);                \
         }                                                                      \
     } while (0)
 

@@ -97,7 +97,7 @@ vector4 basic_fragment_shader(struct shader_context *input,
 
     // Diffuse lighting.
     float n_dot_l = vector3_dot(normal, unif->light_direction);
-    float diffuse_intensity = max_float(0.0f, n_dot_l);
+    float diffuse_intensity = float_max(0.0f, n_dot_l);
     vector3 diffuse_lighting =
         vector3_multiply_scalar(unif->light_color, diffuse_intensity);
     diffuse_lighting =
@@ -117,7 +117,7 @@ vector4 basic_fragment_shader(struct shader_context *input,
         halfway = vector3_normalize(halfway);
         float n_dot_h = vector3_dot(normal, halfway);
         float specular_intensity =
-            powf(max_float(0.0f, n_dot_h), unif->shininess);
+            powf(float_max(0.0f, n_dot_h), unif->shininess);
         specular_lighting =
             vector3_multiply_scalar(unif->light_color, specular_intensity);
         specular_lighting =
