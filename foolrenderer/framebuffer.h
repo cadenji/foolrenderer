@@ -30,7 +30,7 @@ struct framebuffer;
 ///
 /// \return Returns a framebuffer pointer on success, null pointer on failure.
 ///
-struct framebuffer *generate_framebuffer(void);
+struct framebuffer *create_framebuffer(void);
 
 ///
 /// \brief Release the memory pointed to by framebuffer.
@@ -40,7 +40,7 @@ struct framebuffer *generate_framebuffer(void);
 ///
 /// \param framebuffer Pointer to the framebuffer to destroy.
 ///
-void delete_framebuffer(struct framebuffer *framebuffer);
+void destroy_framebuffer(struct framebuffer *framebuffer);
 
 ///
 /// \brief Attaches a texture as one of the logical buffers of the framebuffer.

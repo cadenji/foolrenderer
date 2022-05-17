@@ -65,7 +65,7 @@ static struct texture *load_texture(const char *filename) {
                 endian_inversion(pixel, 3);
             }
         }
-        texture = generate_texture(TEXTURE_FORMAT_RGBA8, width, height);
+        texture = create_texture(TEXTURE_FORMAT_RGBA8, width, height);
         if (texture != NULL) {
             set_texture_pixels(texture, image_data);
         }
@@ -112,17 +112,17 @@ static void save_color_texture(struct texture *texture) {
 
 static void draw_model(struct mesh *mesh, struct texture *diffuse_map,
                        struct texture *normal_map) {
-    struct framebuffer *shadow_framebuffer = generate_framebuffer();
-    struct texture *shadow_map = generate_texture(
+    struct framebuffer *shadow_framebuffer = create_framebuffer();
+    struct texture *shadow_map = create_texture(
         TEXTURE_FORMAT_DEPTH_FLOAT, SHADOW_MAP_WIDTH, SHADOW_MAP_HEIGHT);
     attach_texture_to_framebuffer(shadow_framebuffer, DEPTH_ATTACHMENT,
                                   shadow_map);
 
-    struct framebuffer *framebuffer = generate_framebuffer();
+    struct framebuffer *framebuffer = create_framebuffer();
     struct texture *color_texture =
-        generate_texture(TEXTURE_FORMAT_SRGB8_A8, IMAGE_WIDTH, IMAGE_HEIGHT);
+        create_texture(TEXTURE_FORMAT_SRGB8_A8, IMAGE_WIDTH, IMAGE_HEIGHT);
     struct texture *depth_texture =
-        generate_texture(TEXTURE_FORMAT_DEPTH_FLOAT, IMAGE_WIDTH, IMAGE_HEIGHT);
+        create_texture(TEXTURE_FORMAT_DEPTH_FLOAT, IMAGE_WIDTH, IMAGE_HEIGHT);
     attach_texture_to_framebuffer(framebuffer, COLOR_ATTACHMENT, color_texture);
     attach_texture_to_framebuffer(framebuffer, DEPTH_ATTACHMENT, depth_texture);
 
@@ -147,7 +147,7 @@ static void draw_model(struct mesh *mesh, struct texture *diffuse_map,
         struct shadow_casting_vertex_attribute attributes[3];
         const void *attribute_ptrs[3];
         for (uint32_t v = 0; v < 3; v++) {
-            mesh_get_position(&attributes[v].position, mesh, t, v);
+            get_mesh_position(&attributes[v].position, mesh, t, v);
             attribute_ptrs[v] = attributes + v;
         }
         draw_triangle(shadow_framebuffer, &shadow_uniform, attribute_ptrs);
@@ -194,10 +194,10 @@ static void draw_model(struct mesh *mesh, struct texture *diffuse_map,
         struct basic_vertex_attribute attributes[3];
         const void *attribute_ptrs[3];
         for (uint32_t v = 0; v < 3; v++) {
-            mesh_get_position(&attributes[v].position, mesh, t, v);
-            mesh_get_normal(&attributes[v].normal, mesh, t, v);
-            mesh_get_tangent(&attributes[v].tangent, mesh, t, v);
-            mesh_get_texcoord(&attributes[v].texcoord, mesh, t, v);
+            get_mesh_position(&attributes[v].position, mesh, t, v);
+            get_mesh_normal(&attributes[v].normal, mesh, t, v);
+            get_mesh_tangent(&attributes[v].tangent, mesh, t, v);
+            get_mesh_texcoord(&attributes[v].texcoord, mesh, t, v);
             attribute_ptrs[v] = attributes + v;
         }
         draw_triangle(framebuffer, &uniform, attribute_ptrs);
@@ -206,11 +206,11 @@ static void draw_model(struct mesh *mesh, struct texture *diffuse_map,
     save_color_texture(color_texture);
 
     // Release framebuffer.
-    delete_texture(shadow_map);
-    delete_framebuffer(shadow_framebuffer);
-    delete_texture(color_texture);
-    delete_texture(depth_texture);
-    delete_framebuffer(framebuffer);
+    destroy_texture(shadow_map);
+    destroy_framebuffer(shadow_framebuffer);
+    destroy_texture(color_texture);
+    destroy_texture(depth_texture);
+    destroy_framebuffer(framebuffer);
 }
 
 int main(void) {
@@ -219,7 +219,7 @@ int main(void) {
 
     // Load model data.
     struct mesh *mesh;
-    mesh = mesh_load(model_path);
+    mesh = load_mesh(model_path);
     if (mesh == NULL) {
         printf("Cannot load .obj file.\n");
         return 0;
@@ -227,7 +227,7 @@ int main(void) {
     struct texture *normal_map = load_texture(normal_map_path);
 
     draw_model(mesh, NULL, normal_map);
-    mesh_release(mesh);
-    delete_texture(normal_map);
+    destroy_mesh(mesh);
+    destroy_texture(normal_map);
     return 0;
 }

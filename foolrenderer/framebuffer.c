@@ -20,7 +20,7 @@ struct framebuffer {
     struct texture *depth_buffer;
 };
 
-struct framebuffer *generate_framebuffer(void) {
+struct framebuffer *create_framebuffer(void) {
     struct framebuffer *framebuffer;
     framebuffer = malloc(sizeof(struct framebuffer));
     if (framebuffer == NULL) {
@@ -33,7 +33,7 @@ struct framebuffer *generate_framebuffer(void) {
     return framebuffer;
 }
 
-void delete_framebuffer(struct framebuffer *framebuffer) { free(framebuffer); }
+void destroy_framebuffer(struct framebuffer *framebuffer) { free(framebuffer); }
 
 #define SET_MIN_SIZE(buffer)                                                   \
     do {                                                                       \

@@ -39,8 +39,8 @@ static size_t get_pixel_size(enum texture_format format) {
     return pixel_size;
 }
 
-struct texture *generate_texture(enum texture_format internal_format,
-                                 uint32_t width, uint32_t height) {
+struct texture *create_texture(enum texture_format internal_format,
+                               uint32_t width, uint32_t height) {
     if (width == 0 || height == 0) {
         return NULL;
     }
@@ -65,7 +65,7 @@ struct texture *generate_texture(enum texture_format internal_format,
     return texture;
 }
 
-void delete_texture(struct texture *texture) {
+void destroy_texture(struct texture *texture) {
     if (texture != NULL) {
         free(texture->pixels);
         free(texture);

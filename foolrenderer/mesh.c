@@ -282,7 +282,7 @@ static bool compute_tangents(struct mesh *mesh) {
     return false;
 }
 
-struct mesh *mesh_load(const char *filename) {
+struct mesh *load_mesh(const char *filename) {
     struct mesh *mesh;
     mesh = malloc(sizeof(struct mesh));
     if (mesh == NULL) {
@@ -312,14 +312,14 @@ struct mesh *mesh_load(const char *filename) {
     return mesh;
 
 load_failed:
-    mesh_release(mesh);
+    destroy_mesh(mesh);
     if (data != NULL) {
         fast_obj_destroy(data);
     }
     return NULL;
 }
 
-void mesh_release(struct mesh *mesh) {
+void destroy_mesh(struct mesh *mesh) {
     if (mesh != NULL) {
         free(mesh->positions);
         free(mesh->texcoords);
@@ -331,7 +331,7 @@ void mesh_release(struct mesh *mesh) {
     }
 }
 
-void mesh_get_position(vector3 *position, const struct mesh *mesh,
+void get_mesh_position(vector3 *position, const struct mesh *mesh,
                        uint32_t triangle_index, uint32_t vertex_index) {
     if (triangle_index >= mesh->triangle_count || vertex_index > 2) {
         *position = VECTOR3_ZERO;
@@ -341,7 +341,7 @@ void mesh_get_position(vector3 *position, const struct mesh *mesh,
     }
 }
 
-void mesh_get_texcoord(vector2 *texcoord, const struct mesh *mesh,
+void get_mesh_texcoord(vector2 *texcoord, const struct mesh *mesh,
                        uint32_t triangle_index, uint32_t vertex_index) {
     if (triangle_index >= mesh->triangle_count || vertex_index > 2 ||
         mesh->texcoords == NULL) {
@@ -352,7 +352,7 @@ void mesh_get_texcoord(vector2 *texcoord, const struct mesh *mesh,
     }
 }
 
-void mesh_get_normal(vector3 *normal, const struct mesh *mesh,
+void get_mesh_normal(vector3 *normal, const struct mesh *mesh,
                      uint32_t triangle_index, uint32_t vertex_index) {
     if (triangle_index >= mesh->triangle_count || vertex_index > 2 ||
         mesh->normals == NULL) {
@@ -363,7 +363,7 @@ void mesh_get_normal(vector3 *normal, const struct mesh *mesh,
     }
 }
 
-void mesh_get_tangent(vector4 *tangent, const struct mesh *mesh,
+void get_mesh_tangent(vector4 *tangent, const struct mesh *mesh,
                       uint32_t triangle_index, uint32_t vertex_index) {
     if (triangle_index >= mesh->triangle_count || vertex_index > 2 ||
         mesh->tangents == NULL) {

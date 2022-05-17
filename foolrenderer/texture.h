@@ -50,17 +50,17 @@ struct texture;
 /// \param height The height of the texture.
 /// \return Returns a texture pointer on success, null pointer on failure.
 ///
-struct texture *generate_texture(enum texture_format internal_format,
-                                 uint32_t width, uint32_t height);
+struct texture *create_texture(enum texture_format internal_format,
+                               uint32_t width, uint32_t height);
 
 ///
-/// \brief Destroys the texture created by generate_texture().
+/// \brief Destroys the texture created by create_texture().
 ///
 /// If texture is a null pointer, the function does nothing.
 ///
 /// \param texture Pointer to the texture to destroy.
 ///
-void delete_texture(struct texture *texture);
+void destroy_texture(struct texture *texture);
 
 ///
 /// \brief Writes pixel data to the texture.
