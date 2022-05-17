@@ -196,12 +196,6 @@ inline matrix4x4 matrix4x4_transpose(matrix4x4 m) {
 /// \brief If the matrix is invertible, gets the inverse of the matrix.
 ///        Returns a zero matrix otherwise.
 ///
-/// The invertible check simply compares the calculated determinant with
-/// SMALL_ABSOLUTE_FLOAT to roughly determine whether the matrix is invertible.
-/// This simple check works in common cases, but fails when the matrix is a
-/// combination of huge and small values that can't be accurately represented by
-/// the floating point type.
-///
 /// \param m The matrix to be calculated.
 /// \return The inverse of the matrix.
 ///
