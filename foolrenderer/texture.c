@@ -5,12 +5,12 @@
 
 #include "texture.h"
 
-#include <math.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdlib.h>
 
+#include "color.h"
 #include "math/math_utility.h"
 #include "math/vector.h"
 
@@ -128,20 +128,16 @@ vector4 texture_sample(const struct texture *texture, vector2 texcoord) {
     vector4 pixel = FALLBACK_PIXEL;
     if (texture->format == TEXTURE_FORMAT_RGBA8) {
         const uint8_t *target = (uint8_t *)texture->pixels + pixel_offset * 4;
-        pixel.r = target[0] / 255.0f;
-        pixel.g = target[1] / 255.0f;
-        pixel.b = target[2] / 255.0f;
-        pixel.a = target[3] / 255.0f;
+        pixel.r = uint8_to_float(target[0]);
+        pixel.g = uint8_to_float(target[1]);
+        pixel.b = uint8_to_float(target[2]);
+        pixel.a = uint8_to_float(target[3]);
     } else if (texture->format == TEXTURE_FORMAT_SRGB8_A8) {
         const uint8_t *target = (uint8_t *)texture->pixels + pixel_offset * 4;
-        // Inverse-correct pixel values to linear color space. In fact, this is
-        // just an approximate conversion method. A discussion of nonlinear
-        // color spaces can be found in NVIDIA's GPU Gems 3:
-        // https://developer.nvidia.com/gpugems/gpugems3/part-iv-image-effects/chapter-24-importance-being-linear
-        pixel.r = powf(target[0] / 255.0f, GAMMA);
-        pixel.g = powf(target[1] / 255.0f, GAMMA);
-        pixel.b = powf(target[2] / 255.0f, GAMMA);
-        pixel.a = target[3] / 255.0f;
+        pixel.r = convert_to_linear_color(uint8_to_float(target[0]));
+        pixel.g = convert_to_linear_color(uint8_to_float(target[1]));
+        pixel.b = convert_to_linear_color(uint8_to_float(target[2]));
+        pixel.a = uint8_to_float(target[3]);
     } else if (texture->format == TEXTURE_FORMAT_DEPTH_FLOAT) {
         const float *target = (float *)texture->pixels + pixel_offset;
         pixel.r = *target;

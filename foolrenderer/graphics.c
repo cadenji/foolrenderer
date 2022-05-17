@@ -11,6 +11,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "color.h"
 #include "math/math_utility.h"
 #include "math/vector.h"
 #include "shader_context.h"
@@ -222,17 +223,15 @@ static void write_color(uint8_t *pixel, vector4 color) {
     color.a = float_clamp01(color.a);
     if (is_srgb_encoding) {
         // Perform gamma correction if the color buffer to be written is sRGB
-        // encoded. This is just an approximate conversion method. A discussion
-        // of nonlinear color spaces can be found in NVIDIA's GPU Gems 3:
-        // https://developer.nvidia.com/gpugems/gpugems3/part-iv-image-effects/chapter-24-importance-being-linear
-        color.r = powf(color.r, 1.0f / GAMMA);
-        color.g = powf(color.g, 1.0f / GAMMA);
-        color.b = powf(color.b, 1.0f / GAMMA);
+        // encoded.
+        color.r = convert_to_srgb_color(color.r);
+        color.g = convert_to_srgb_color(color.g);
+        color.b = convert_to_srgb_color(color.b);
     }
-    pixel[0] = color.r * 0xFF;
-    pixel[1] = color.g * 0xFF;
-    pixel[2] = color.b * 0xFF;
-    pixel[3] = color.a * 0xFF;
+    pixel[0] = float_to_uint8(color.r);
+    pixel[1] = float_to_uint8(color.g);
+    pixel[2] = float_to_uint8(color.b);
+    pixel[3] = float_to_uint8(color.a);
 }
 
 void set_viewport(int left, int bottom, uint32_t width, uint32_t height) {

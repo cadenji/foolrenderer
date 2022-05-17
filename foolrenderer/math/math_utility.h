@@ -10,7 +10,6 @@
 
 #define SMALL_ABSOLUTE_FLOAT (1.e-8f)
 #define PI (3.1415926535897932f)
-#define GAMMA (2.2f)
 
 inline int32_t int32_max(int32_t a, int32_t b) { return a > b ? a : b; }
 
@@ -41,5 +40,9 @@ inline float float_clamp(float n, float min, float max) {
 }
 
 inline float float_clamp01(float n) { return float_clamp(n, 0.0f, 1.0f); }
+
+inline uint8_t float_to_uint8(float value) { return value * 0xFF; }
+
+inline float uint8_to_float(uint8_t value) { return value / 255.0f; }
 
 #endif  // FOOLRENDERER_MATH_MATH_UTILITY_H_
