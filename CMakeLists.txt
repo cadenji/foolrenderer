@@ -14,6 +14,7 @@ add_executable(${PROJECT_NAME}
     foolrenderer/math/matrix.c
     foolrenderer/math/math_utility.c
     foolrenderer/shaders/basic.c
+    foolrenderer/shaders/standard.c
     foolrenderer/shaders/shadow_casting.c
 )
 
