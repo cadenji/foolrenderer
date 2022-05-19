@@ -21,7 +21,7 @@
 struct standard_uniform {
     matrix4x4 local2world;
     matrix4x4 world2clip;
-    matrix3x3 loacl2world_direction;
+    matrix3x3 local2world_direction;
     matrix3x3 local2world_normal;
     // Camera position in world space.
     vector3 camera_position;

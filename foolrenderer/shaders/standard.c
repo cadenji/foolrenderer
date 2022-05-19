@@ -104,7 +104,7 @@ vector4 standard_vertex_shader(struct shader_context *output,
         matrix3x3_multiply_vector3(unif->local2world_normal, attr->normal);
 
     vector3 *out_tangent = shader_context_vector3(output, WORLD_SPACE_TANGENT);
-    *out_tangent = matrix3x3_multiply_vector3(unif->loacl2world_direction,
+    *out_tangent = matrix3x3_multiply_vector3(unif->local2world_direction,
                                               vector4_to_3(attr->tangent));
 
     vector3 *out_bitangent =
