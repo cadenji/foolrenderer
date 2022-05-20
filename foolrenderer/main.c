@@ -224,9 +224,19 @@ int main(void) {
         printf("Cannot load .obj file.\n");
         return 0;
     }
+    // Create a default diffuse map.
+    struct texture *diffuse_map = create_texture(TEXTURE_FORMAT_RGBA8, 1, 1);
+    if (diffuse_map != NULL) {
+        uint8_t pixel_data[3] = {255, 255, 255};
+        set_texture_pixels(diffuse_map, pixel_data);
+    }
     struct texture *normal_map = load_texture(normal_map_path);
+    if (diffuse_map == NULL || normal_map == NULL) {
+        printf("Cannot load texture files.\n");
+        return 0;
+    }
 
-    draw_model(mesh, NULL, normal_map);
+    draw_model(mesh, diffuse_map, normal_map);
     destroy_mesh(mesh);
     destroy_texture(normal_map);
     return 0;
