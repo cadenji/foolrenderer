@@ -14,8 +14,6 @@
 #include "math/math_utility.h"
 #include "math/vector.h"
 
-#define FALLBACK_PIXEL VECTOR4_ONE
-
 struct texture {
     enum texture_format format;
     uint32_t width, height;
@@ -112,10 +110,6 @@ uint32_t get_texture_height(const struct texture *texture) {
 }
 
 vector4 texture_sample(const struct texture *texture, vector2 texcoord) {
-    if (texture == NULL) {
-        return FALLBACK_PIXEL;
-    }
-
     float u = float_clamp01(texcoord.u);
     float v = float_clamp01(texcoord.v);
     uint32_t u_index = (uint32_t)(u * texture->width);
@@ -125,7 +119,7 @@ vector4 texture_sample(const struct texture *texture, vector2 texcoord) {
     v_index = v_index >= texture->height ? texture->height - 1 : v_index;
     size_t pixel_offset = (size_t)u_index + v_index * texture->width;
 
-    vector4 pixel = FALLBACK_PIXEL;
+    vector4 pixel = VECTOR4_ZERO;
     if (texture->format == TEXTURE_FORMAT_RGBA8) {
         const uint8_t *target = (uint8_t *)texture->pixels + pixel_offset * 4;
         pixel.r = uint8_to_float(target[0]);

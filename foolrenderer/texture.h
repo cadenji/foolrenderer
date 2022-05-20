@@ -126,7 +126,7 @@ uint32_t get_texture_height(const struct texture *texture);
 /// If the texture's format is sRGB encoded, the function will inverse-correct
 /// pixel values to linear color space.
 ///
-/// If texture is a null pointer, returns a fallback pixel value (1,1,1,1).
+/// The behavior is undefined if texture is a null pointer.
 ///
 /// \param texture Pointer to the texture to retrieve.
 /// \param texcoord Texture coordinate at which the texture will be sampled.
