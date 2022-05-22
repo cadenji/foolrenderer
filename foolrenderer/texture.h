@@ -13,15 +13,30 @@
 
 enum texture_format {
     ///
+    /// The format has only an R component, the type is 8-bit unsigned integer.
+    ///
+    TEXTURE_FORMAT_R8,
+    ///
+    /// The components included in this format are R, G, B, and each component
+    /// is an 8-bit unsigned integer type.
+    ///
+    TEXTURE_FORMAT_RGB8,
+    ///
+    /// The components included in this format are R, G, B, each component is an
+    /// 8-bit unsigned integer type. And the three components are considered to
+    /// be encoded in the sRGB color space.
+    ///
+    TEXTURE_FORMAT_SRGB8,
+    ///
     /// The components included in this format are R, G, B, A, and each
     /// component is an 8-bit unsigned integer type.
     ///
     TEXTURE_FORMAT_RGBA8,
     ///
-    /// The components included in this format are R, G, B, A, and each
-    /// component is an 8-bit unsigned integer type. And the color values of the
-    /// three components of R, G, and B are considered to be encoded in the sRGB
-    /// color space.
+    /// The components included in this format are R, G, B, A, each component is
+    /// an 8-bit unsigned integer type. And the color values of the three
+    /// components of R, G, and B are considered to be encoded in the sRGB color
+    /// space.
     ///
     TEXTURE_FORMAT_SRGB8_A8,
     ///
@@ -63,15 +78,12 @@ struct texture *create_texture(enum texture_format internal_format,
 void destroy_texture(struct texture *texture);
 
 ///
-/// \brief Writes pixel data to the texture.
+/// \brief Copies the image pixel data into the texture.
 ///
-/// This function is only applicable to textures whose internal format is
-/// TEXTURE_FORMAT_RGBA8. The data pointed to by pixels must be in RGB format,
-/// and each component is an unsigned byte type. The origin of the image should
-/// be in the bottom-left corner.
+/// The origin of the image should be in the bottom-left corner.
 ///
 /// If texture or pixels is a null pointer, the data write fails. The behavior
-/// is undefined if the size of the array pointed to by the pixel is smaller
+/// is undefined if the size of the array pointed to by the pixels is smaller
 /// than the data size required by the texture.
 ///
 /// \param texture The texture pointer.
@@ -121,7 +133,7 @@ uint32_t get_texture_width(const struct texture *texture);
 uint32_t get_texture_height(const struct texture *texture);
 
 ///
-/// \brief Retrieves pixel from the texture.
+/// \brief Samples pixel from the texture.
 ///
 /// If the texture's format is sRGB encoded, the function will inverse-correct
 /// pixel values to linear color space.

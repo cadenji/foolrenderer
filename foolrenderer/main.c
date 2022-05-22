@@ -65,7 +65,7 @@ static struct texture *load_texture(const char *filename) {
                 endian_inversion(pixel, 3);
             }
         }
-        texture = create_texture(TEXTURE_FORMAT_RGBA8, width, height);
+        texture = create_texture(TEXTURE_FORMAT_RGB8, width, height);
         if (texture != NULL) {
             set_texture_pixels(texture, image_data);
         }
