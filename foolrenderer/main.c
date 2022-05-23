@@ -15,17 +15,14 @@
 #include "math/matrix.h"
 #include "math/vector.h"
 #include "mesh.h"
-#include "shaders/basic.h"
-#include "shaders/shadow_casting.h"
+#include "shaders/standard.h"
 #include "texture.h"
 
-#define SHADOW_MAP_WIDTH 1024
-#define SHADOW_MAP_HEIGHT 1024
 #define IMAGE_WIDTH 512
 #define IMAGE_HEIGHT 512
 
-// The direction of the light in world space.
 const vector3 LIGHT_DIRECTION = {{1.0f, 1.0f, 0.5f}};
+const vector3 CAMERA_POSITION = {{0.0f, 0.0f, 2.5f}};
 
 static void endian_inversion(uint8_t *bytes, size_t size) {
     uint8_t buffer;
@@ -39,42 +36,42 @@ static void endian_inversion(uint8_t *bytes, size_t size) {
     }
 }
 
-static struct texture *load_texture(const char *filename) {
-    if (filename == NULL || strlen(filename) == 0) {
-        return NULL;
-    }
+// static struct texture *load_texture(const char *filename) {
+//     if (filename == NULL || strlen(filename) == 0) {
+//         return NULL;
+//     }
 
-    uint8_t *image_data;
-    tga_info *image_info;
-    enum tga_error error_code;
-    error_code = tga_load(&image_data, &image_info, filename);
-    if (error_code != TGA_NO_ERROR) {
-        return NULL;
-    }
-    tga_image_flip_v(image_data, image_info);
+//     uint8_t *image_data;
+//     tga_info *image_info;
+//     enum tga_error error_code;
+//     error_code = tga_load(&image_data, &image_info, filename);
+//     if (error_code != TGA_NO_ERROR) {
+//         return NULL;
+//     }
+//     tga_image_flip_v(image_data, image_info);
 
-    struct texture *texture = NULL;
-    if (tga_get_pixel_format(image_info) == TGA_PIXEL_RGB24) {
-        uint32_t width = tga_get_image_width(image_info);
-        uint32_t height = tga_get_image_height(image_info);
-        // Convert all pixels to big endian.
-        uint8_t *pixel;
-        for (uint32_t y = 0; y < height; y++) {
-            for (uint32_t x = 0; x < width; x++) {
-                pixel = tga_get_pixel(image_data, image_info, x, y);
-                endian_inversion(pixel, 3);
-            }
-        }
-        texture = create_texture(TEXTURE_FORMAT_RGB8, width, height);
-        if (texture != NULL) {
-            set_texture_pixels(texture, image_data);
-        }
-    }
+//     struct texture *texture = NULL;
+//     if (tga_get_pixel_format(image_info) == TGA_PIXEL_RGB24) {
+//         uint32_t width = tga_get_image_width(image_info);
+//         uint32_t height = tga_get_image_height(image_info);
+//         // Convert all pixels to big endian.
+//         uint8_t *pixel;
+//         for (uint32_t y = 0; y < height; y++) {
+//             for (uint32_t x = 0; x < width; x++) {
+//                 pixel = tga_get_pixel(image_data, image_info, x, y);
+//                 endian_inversion(pixel, 3);
+//             }
+//         }
+//         texture = create_texture(TEXTURE_FORMAT_RGB8, width, height);
+//         if (texture != NULL) {
+//             set_texture_pixels(texture, image_data);
+//         }
+//     }
 
-    tga_free_data(image_data);
-    tga_free_info(image_info);
-    return texture;
-}
+//     tga_free_data(image_data);
+//     tga_free_info(image_info);
+//     return texture;
+// }
 
 static void save_color_texture(struct texture *texture) {
     uint32_t texture_width = get_texture_width(texture);
@@ -110,14 +107,29 @@ static void save_color_texture(struct texture *texture) {
     tga_free_info(image_info);
 }
 
-static void draw_model(struct mesh *mesh, struct texture *diffuse_map,
-                       struct texture *normal_map) {
-    struct framebuffer *shadow_framebuffer = create_framebuffer();
-    struct texture *shadow_map = create_texture(
-        TEXTURE_FORMAT_DEPTH_FLOAT, SHADOW_MAP_WIDTH, SHADOW_MAP_HEIGHT);
-    attach_texture_to_framebuffer(shadow_framebuffer, DEPTH_ATTACHMENT,
-                                  shadow_map);
+static void set_shader_uniform(struct standard_uniform *uniform) {
+    uniform->local2world = MATRIX4X4_IDENTITY;
+    matrix4x4 world2view = matrix4x4_look_at(CAMERA_POSITION, VECTOR3_ZERO,
+                                             (vector3){{0.0f, 1.0f, 0.0f}});
+    matrix4x4 view2clip = matrix4x4_perspective(
+        PI / 4.0f, IMAGE_WIDTH / IMAGE_HEIGHT, 0.1f, 5.0f);
+    uniform->world2clip = matrix4x4_multiply(view2clip, world2view);
+    uniform->local2world_direction = matrix4x4_to_3x3(uniform->local2world);
+    // There is no non-uniform scaling so the normal transformation matrix is
+    // the direction transformation matrix.
+    uniform->local2world_normal = uniform->local2world_direction;
+    uniform->camera_position = CAMERA_POSITION;
+    uniform->light_direction = vector3_normalize(LIGHT_DIRECTION);
+    uniform->light_intensity = VECTOR3_ONE;
+    uniform->base_color = (vector3){{1.0f, 0.0f, 0.0f}};
+    uniform->metallic = 0.0f;
+    uniform->roughness = 0.2f;
+    uniform->reflectance = 0.5f;  // Common dielectric surfaces F0.
+}
 
+static void draw_model(struct mesh *mesh, struct texture *base_color_map,
+                       struct texture *normal_map, struct texture *metallic_map,
+                       struct texture *roughness_map) {
     struct framebuffer *framebuffer = create_framebuffer();
     struct texture *color_texture =
         create_texture(TEXTURE_FORMAT_SRGB8_A8, IMAGE_WIDTH, IMAGE_HEIGHT);
@@ -126,72 +138,22 @@ static void draw_model(struct mesh *mesh, struct texture *diffuse_map,
     attach_texture_to_framebuffer(framebuffer, COLOR_ATTACHMENT, color_texture);
     attach_texture_to_framebuffer(framebuffer, DEPTH_ATTACHMENT, depth_texture);
 
-    // The first pass, create the shadow map.
-    set_viewport(0, 0, SHADOW_MAP_WIDTH, SHADOW_MAP_HEIGHT);
-    set_vertex_shader(shadow_casting_vertex_shader);
-    set_fragment_shader(shadow_casting_fragment_shader);
-    clear_framebuffer(shadow_framebuffer);
+    // Draw the model.
+    set_viewport(0, 0, IMAGE_WIDTH, IMAGE_HEIGHT);
+    set_vertex_shader(standard_vertex_shader);
+    set_fragment_shader(standard_fragment_shader);
+    clear_framebuffer(framebuffer);
 
-    struct shadow_casting_uniform shadow_uniform;
-    matrix4x4 light_world2view = matrix4x4_look_at(
-        LIGHT_DIRECTION, VECTOR3_ZERO, (vector3){{0.0f, 1.0f, 0.0f}});
-    matrix4x4 light_view2clip = matrix4x4_orthographic(1.5f, 1.5f, 0.1f, 2.5f);
-    matrix4x4 light_world2clip =
-        matrix4x4_multiply(light_view2clip, light_world2view);
-    // No rotation, scaling, or translation of the model, so the local2clip
-    // matrix is the world2clip matrix.
-    shadow_uniform.local2clip = light_world2clip;
+    struct standard_uniform uniform;
+    set_shader_uniform(&uniform);
+    uniform.base_color_map = base_color_map;
+    uniform.normal_map = normal_map;
+    uniform.metallic_map = metallic_map;
+    uniform.roughness_map = roughness_map;
 
     uint32_t triangle_count = mesh->triangle_count;
     for (size_t t = 0; t < triangle_count; t++) {
-        struct shadow_casting_vertex_attribute attributes[3];
-        const void *attribute_ptrs[3];
-        for (uint32_t v = 0; v < 3; v++) {
-            get_mesh_position(&attributes[v].position, mesh, t, v);
-            attribute_ptrs[v] = attributes + v;
-        }
-        draw_triangle(shadow_framebuffer, &shadow_uniform, attribute_ptrs);
-    }
-
-    // The second pass, draw the model.
-    set_viewport(0, 0, IMAGE_WIDTH, IMAGE_HEIGHT);
-    set_vertex_shader(basic_vertex_shader);
-    set_fragment_shader(basic_fragment_shader);
-    clear_framebuffer(framebuffer);
-
-    struct basic_uniform uniform;
-    matrix4x4 world2view = matrix4x4_look_at((vector3){{0.0f, 0.0f, 2.5f}},
-                                             (vector3){{0.0f, 0.0f, 0.0f}},
-                                             (vector3){{0.0f, 1.0f, 0.0f}});
-    // No rotation, scaling, or translation of the model, so the local2view
-    // matrix is the world2view matrix.
-    uniform.local2view = world2view;
-    uniform.view2clip = matrix4x4_perspective(
-        PI / 4.0f, IMAGE_WIDTH / IMAGE_HEIGHT, 0.1f, 5.0f);
-    uniform.loacl2view_direction = matrix4x4_to_3x3(uniform.local2view);
-    // There is no non-uniform scaling so the normal transformation matrix is
-    // the direction transformation matrix.
-    uniform.local2view_normal = uniform.loacl2view_direction;
-    uniform.light_direction = vector3_normalize(matrix3x3_multiply_vector3(
-        matrix4x4_to_3x3(world2view), LIGHT_DIRECTION));
-    uniform.light_color = VECTOR3_ONE;
-    uniform.ambient_color = (vector3){{0.01f, 0.01f, 0.01f}};
-    uniform.ambient_reflectance = VECTOR3_ONE;
-    uniform.diffuse_reflectance = VECTOR3_ONE;
-    uniform.specular_reflectance = VECTOR3_ONE;
-    uniform.shininess = 100.0f;
-    uniform.diffuse_map = diffuse_map;
-    uniform.normal_map = normal_map;
-    // Remap each component of position from [-1, 1] to [0, 1].
-    matrix4x4 remap_matrix = {{{0.5f, 0.0f, 0.0f, 0.5f},
-                               {0.0f, 0.5f, 0.0f, 0.5f},
-                               {0.0f, 0.0f, 0.5f, 0.5f},
-                               {0.0f, 0.0f, 0.0f, 1.0f}}};
-    uniform.local2light = matrix4x4_multiply(remap_matrix, light_world2clip);
-    uniform.shadow_map = shadow_map;
-
-    for (size_t t = 0; t < triangle_count; t++) {
-        struct basic_vertex_attribute attributes[3];
+        struct standard_vertex_attribute attributes[3];
         const void *attribute_ptrs[3];
         for (uint32_t v = 0; v < 3; v++) {
             get_mesh_position(&attributes[v].position, mesh, t, v);
@@ -206,16 +168,13 @@ static void draw_model(struct mesh *mesh, struct texture *diffuse_map,
     save_color_texture(color_texture);
 
     // Release framebuffer.
-    destroy_texture(shadow_map);
-    destroy_framebuffer(shadow_framebuffer);
     destroy_texture(color_texture);
     destroy_texture(depth_texture);
     destroy_framebuffer(framebuffer);
 }
 
 int main(void) {
-    const char *model_path = "assets/suzanne/suzanne.obj";
-    const char *normal_map_path = "assets/suzanne/normal.tga";
+    const char *model_path = "assets/sphere/sphere.obj";
 
     // Load model data.
     struct mesh *mesh;
@@ -224,20 +183,36 @@ int main(void) {
         printf("Cannot load .obj file.\n");
         return 0;
     }
-    // Create a default diffuse map.
-    struct texture *diffuse_map = create_texture(TEXTURE_FORMAT_RGBA8, 1, 1);
-    if (diffuse_map != NULL) {
-        uint8_t pixel_data[3] = {255, 255, 255};
-        set_texture_pixels(diffuse_map, pixel_data);
-    }
-    struct texture *normal_map = load_texture(normal_map_path);
-    if (diffuse_map == NULL || normal_map == NULL) {
-        printf("Cannot load texture files.\n");
+    struct texture *base_color_map = create_texture(TEXTURE_FORMAT_RGBA8, 1, 1);
+    struct texture *normal_map = create_texture(TEXTURE_FORMAT_RGBA8, 1, 1);
+    struct texture *metallic_map = create_texture(TEXTURE_FORMAT_R8, 1, 1);
+    struct texture *roughness_map = create_texture(TEXTURE_FORMAT_R8, 1, 1);
+    if (base_color_map == NULL || normal_map == NULL || metallic_map == NULL ||
+        roughness_map == NULL) {
+        printf("Cannot create texture.\n");
+        destroy_mesh(mesh);
+        destroy_texture(base_color_map);
+        destroy_texture(normal_map);
+        destroy_texture(metallic_map);
+        destroy_texture(roughness_map);
         return 0;
     }
+    // Set textures to their respective defaults, equivalent to not using
+    // textures.
+    uint8_t base_color_data[3] = {255, 255, 255};
+    set_texture_pixels(base_color_map, base_color_data);
+    uint8_t normal_data[3] = {128, 128, 255};
+    set_texture_pixels(normal_map, normal_data);
+    uint8_t white = 255;
+    set_texture_pixels(metallic_map, &white);
+    set_texture_pixels(roughness_map, &white);
 
-    draw_model(mesh, diffuse_map, normal_map);
+    draw_model(mesh, base_color_map, normal_map, metallic_map, roughness_map);
+
     destroy_mesh(mesh);
+    destroy_texture(base_color_map);
     destroy_texture(normal_map);
+    destroy_texture(metallic_map);
+    destroy_texture(roughness_map);
     return 0;
 }
