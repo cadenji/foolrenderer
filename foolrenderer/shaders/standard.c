@@ -19,6 +19,37 @@
 #define WORLD_SPACE_TANGENT 2
 #define WORLD_SPACE_BITANGENT 3
 
+struct material_parameter {
+    vector3 normal;  // In tangent space.
+    vector3 base_color;
+    float metallic;
+    float roughness;
+    float reflectance;
+};
+
+// Process user input of material properties into a form that is convenient for
+// the shader to use.
+static inline void compute_material_parameter(
+    struct material_parameter *param, const struct standard_uniform *uniform,
+    vector2 texcoord) {
+    vector3 normal =
+        vector4_to_3(texture_sample(uniform->normal_map, texcoord));
+    normal =
+        vector3_subtract_scalar(vector3_multiply_scalar(normal, 2.0f), 1.0f);
+    param->normal = normal;
+    vector3 base_color =
+        vector4_to_3(texture_sample(uniform->base_color_map, texcoord));
+    base_color = vector3_multiply(uniform->base_color, base_color);
+    param->base_color = base_color;
+    float metallic = texture_sample(uniform->metallic_map, texcoord).r;
+    metallic *= uniform->metallic;
+    param->metallic = metallic;
+    float roughness = texture_sample(uniform->roughness_map, texcoord).r;
+    roughness *= uniform->roughness;
+    param->roughness = roughness;
+    param->reflectance = uniform->reflectance;
+}
+
 static inline float perceptual_roughness_to_a2(float perceptual_roughness) {
     // Prevent being zero, and prevent perceptual_oughness^4 from going out of
     // range of precision.
@@ -117,47 +148,43 @@ vector4 standard_vertex_shader(struct shader_context *output,
 
 vector4 standard_fragment_shader(struct shader_context *input,
                                  const void *uniform) {
-    const struct standard_uniform *unif = uniform;
-
     vector2 texcoord = *shader_context_vector2(input, TEXCOORD);
     vector3 position = *shader_context_vector3(input, WORLD_SPACE_POSITION);
+    const struct standard_uniform *unif = uniform;
+    vector3 camera_position = unif->camera_position;
+    vector3 light_direction = unif->light_direction;
+    vector3 light_intensity = unif->light_intensity;
 
-    vector3 diffuse_color =
-        vector3_multiply_scalar(unif->base_color, (1.0f - unif->metallic));
+    struct material_parameter material;
+    compute_material_parameter(&material, unif, texcoord);
 
-    float dielectric_f0 =
-        0.16f * unif->reflectance * unif->reflectance * (1.0f - unif->metallic);
+    vector3 diffuse_color = vector3_multiply_scalar(material.base_color,
+                                                    (1.0f - material.metallic));
+    float dielectric_f0 = 0.16f * material.reflectance * material.reflectance *
+                          (1.0f - material.metallic);
     vector3 conductor_f0 =
-        vector3_multiply_scalar(unif->base_color, unif->metallic);
+        vector3_multiply_scalar(material.base_color, material.metallic);
     vector3 f0 = vector3_add_scalar(conductor_f0, dielectric_f0);
-
-    float a2 = perceptual_roughness_to_a2(unif->roughness);
-
+    float a2 = perceptual_roughness_to_a2(material.roughness);
     matrix3x3 tangent2world = construct_tangent2world(input);
-    vector3 normal = vector4_to_3(texture_sample(unif->normal_map, texcoord));
-    normal =
-        vector3_subtract_scalar(vector3_multiply_scalar(normal, 2.0f), 1.0f);
     // Normalized normal, in world space.
-    normal = matrix3x3_multiply_vector3(tangent2world, normal);
+    vector3 normal = matrix3x3_multiply_vector3(tangent2world, material.normal);
     // Normalized vector from the fragment to the camera, in world space.
     vector3 view =
-        vector3_normalize(vector3_subtract(unif->camera_position, position));
+        vector3_normalize(vector3_subtract(camera_position, position));
     // Normalized halfway vector between the light direction and the view
     // direction, in world space.
-    vector3 halfway =
-        vector3_normalize(vector3_add(view, unif->light_direction));
+    vector3 halfway = vector3_normalize(vector3_add(view, light_direction));
 
     float n_dot_v =
         float_max(vector3_dot(normal, view), 1e-4f);  // Avoid artifact.
-    float n_dot_l = float_max(vector3_dot(normal, unif->light_direction), 0.0f);
+    float n_dot_l = float_max(vector3_dot(normal, light_direction), 0.0f);
     float n_dot_h = float_max(vector3_dot(normal, halfway), 0.0f);
-    float l_dot_h =
-        float_max(vector3_dot(unif->light_direction, halfway), 0.0f);
+    float l_dot_h = float_max(vector3_dot(light_direction, halfway), 0.0f);
 
     vector3 fr = specular_lobe(a2, f0, n_dot_h, n_dot_l, n_dot_v, l_dot_h);
     vector3 fd = diffuse_lobe(diffuse_color);
-    vector3 output =
-        vector3_multiply(vector3_add(fr, fd), unif->light_intensity);
+    vector3 output = vector3_multiply(vector3_add(fr, fd), light_intensity);
     output = vector3_multiply_scalar(output, n_dot_l);
     return vector3_to_4(output, 1.0f);
 }

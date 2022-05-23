@@ -29,16 +29,24 @@ struct standard_uniform {
     vector3 light_direction;
     vector3 light_intensity;
 
+    ////////////////////////////////////////////////////////////////////////////
+    //
+    // Material parameters.
+    //
+    ////////////////////////////////////////////////////////////////////////////
     struct texture *normal_map;
     // Diffuse albedo for non-metallic surfaces and specular color for metallic
     // surfaces, should be in linear color space. A specular color reference
     // table for metals can be found in the Filament documentation:
     // https://google.github.io/filament/Filament.html#table_fnormalmetals
     vector3 base_color;
+    struct texture *base_color_map;
     // Whether a surface appears to be dielectric (0.0) or conductor (1.0).
     float metallic;
+    struct texture * metallic_map;
     // Perceived smoothness (0.0) or roughness (1.0) of a surface.
     float roughness;
+    struct texture *roughness_map;
     // Fresnel reflectance at normal incidence for dielectric surfaces, not
     // useful for conductor surfaces. A reference table of reflectance for
     // dielectric can be found in the Filament documentation:
