@@ -20,7 +20,7 @@
 struct vertex {
     struct shader_context context;
     vector4 position;
-    vector2 position_window;
+    vector2 screen_space_position;
     float depth;
     // The inverse of the w component of the vertex position in the clip space.
     // Will be used for perspective correct interpolation.
@@ -102,17 +102,17 @@ static inline void perspective_division(struct vertex *vertex) {
 // space, transform the value range of the z component from [-1, 1] to [0, 1].
 static inline void viewport_transform(struct vertex *vertex) {
     vector4 *position = &vertex->position;
-    vector2 *position_window = &vertex->position_window;
-    position_window->x =
+    vector2 *screen_space_position = &vertex->screen_space_position;
+    screen_space_position->x =
         (position->x + 1.0f) * 0.5f * viewport.width + viewport.left;
-    position_window->y =
+    screen_space_position->y =
         (position->y + 1.0f) * 0.5f * viewport.height + viewport.bottom;
     vertex->depth = (position->z + 1.0f) * 0.5f;
 }
 
 static inline void update_bounding_box(struct bounding_box *bound,
                                        const struct vertex *vertex) {
-    const vector2 *position = &vertex->position_window;
+    const vector2 *position = &vertex->screen_space_position;
     vector2 *min = &bound->min;
     vector2 *max = &bound->max;
     min->x = float_min(min->x, position->x);
@@ -270,9 +270,9 @@ void draw_triangle(struct framebuffer *framebuffer, const void *uniform,
         update_bounding_box(&bound, vertex);
     }
     // Compute the area of the triangle multiplied by 2.
-    float area = edge_function(&vertices[0].position_window,
-                               &vertices[1].position_window,
-                               &vertices[2].position_window);
+    float area = edge_function(&vertices[0].screen_space_position,
+                               &vertices[1].screen_space_position,
+                               &vertices[2].screen_space_position);
     if (area >= 0) {
         // If the area is 0, it means this is a degenerate triangle. If the area
         // is positive, the triangle with clockwise winding.
@@ -297,12 +297,12 @@ void draw_triangle(struct framebuffer *framebuffer, const void *uniform,
             // The barycentric coordinates of p.
             float bc[3];
             // Note that this is not the final barycentric coordinates.
-            bc[0] = edge_function(&vertices[1].position_window,
-                                  &vertices[2].position_window, &p);
-            bc[1] = edge_function(&vertices[2].position_window,
-                                  &vertices[0].position_window, &p);
-            bc[2] = edge_function(&vertices[0].position_window,
-                                  &vertices[1].position_window, &p);
+            bc[0] = edge_function(&vertices[1].screen_space_position,
+                                  &vertices[2].screen_space_position, &p);
+            bc[1] = edge_function(&vertices[2].screen_space_position,
+                                  &vertices[0].screen_space_position, &p);
+            bc[2] = edge_function(&vertices[0].screen_space_position,
+                                  &vertices[1].screen_space_position, &p);
             if (bc[0] > 0.0f || bc[1] > 0.0f || bc[2] > 0.0f) {
                 // If any component of the barycentric coordinates is greater
                 // than 0, it means that the pixel is outside the triangle.
