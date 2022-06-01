@@ -227,6 +227,12 @@ inline vector2 vector2_normalize(vector2 v) {
     return vector2_multiply_scalar(v, 1.0f / sqrtf(square_magnitude));
 }
 
+inline vector2 vector2_lerp(vector2 a, vector2 b, float t) {
+    float x = float_lerp(a.x, b.x, t);
+    float y = float_lerp(a.y, b.y, t);
+    return (vector2){{x, y}};
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 //
 // 3D vector functions.
@@ -316,6 +322,13 @@ inline vector3 vector3_normalize(vector3 v) {
     return vector3_multiply_scalar(v, 1.0f / sqrtf(square_magnitude));
 }
 
+inline vector3 vector3_lerp(vector3 a, vector3 b, float t) {
+    float x = float_lerp(a.x, b.x, t);
+    float y = float_lerp(a.y, b.y, t);
+    float z = float_lerp(a.z, b.z, t);
+    return (vector3){{x, y, z}};
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 //
 // 4D vector functions.
@@ -395,6 +408,14 @@ inline vector4 vector4_normalize(vector4 v) {
         return v;
     }
     return vector4_multiply_scalar(v, 1.0f / sqrtf(square_magnitude));
+}
+
+inline vector4 vector4_lerp(vector4 a, vector4 b, float t) {
+    float x = float_lerp(a.x, b.x, t);
+    float y = float_lerp(a.y, b.y, t);
+    float z = float_lerp(a.z, b.z, t);
+    float w = float_lerp(a.z, b.z, t);
+    return (vector4){{x, y, z, w}};
 }
 
 #endif  // FOOLRENDERER_MATH_VECTOR_H_

@@ -39,6 +39,8 @@ extern float vector2_magnitude_squared(vector2 v);
 
 extern vector2 vector2_normalize(vector2 v);
 
+extern vector2 vector2_lerp(vector2 a, vector2 b, float t);
+
 extern vector3 vector3_add(vector3 v1, vector3 v2);
 
 extern vector3 vector3_add_scalar(vector3 v, float scalar);
@@ -65,6 +67,8 @@ extern float vector3_magnitude_squared(vector3 v);
 
 extern vector3 vector3_normalize(vector3 v);
 
+extern vector3 vector3_lerp(vector3 a, vector3 b, float t);
+
 extern vector4 vector4_add(vector4 v1, vector4 v2);
 
 extern vector4 vector4_add_scalar(vector4 v, float scalar);
@@ -88,3 +92,5 @@ extern float vector4_magnitude(vector4 v);
 extern float vector4_magnitude_squared(vector4 v);
 
 extern vector4 vector4_normalize(vector4 v);
+
+extern vector4 vector4_lerp(vector4 a, vector4 b, float t);
