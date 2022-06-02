@@ -147,7 +147,7 @@ static void set_shader_uniform(struct standard_uniform *uniform) {
     uniform->local2world_normal = uniform->local2world_direction;
     uniform->camera_position = CAMERA_POSITION;
     uniform->light_direction = vector3_normalize(LIGHT_DIRECTION);
-    uniform->light_intensity = (vector3){{2.0f, 2.0f, 2.0f}};
+    uniform->illuminance = (vector3){{2.0f, 2.0f, 2.0f}};
     uniform->base_color = VECTOR3_ONE;
     uniform->metallic = 1.0f;
     uniform->roughness = 1.0f;

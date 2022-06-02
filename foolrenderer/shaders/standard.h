@@ -25,9 +25,10 @@ struct standard_uniform {
     matrix3x3 local2world_normal;
     // Camera position in world space.
     vector3 camera_position;
-    // Normalized light direction in world space.
+    // Normalized directional light direction in world space.
     vector3 light_direction;
-    vector3 light_intensity;
+    // Directional light illuminance.
+    vector3 illuminance;
 
     ////////////////////////////////////////////////////////////////////////////
     //

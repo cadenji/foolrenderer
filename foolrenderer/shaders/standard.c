@@ -153,7 +153,7 @@ vector4 standard_fragment_shader(struct shader_context *input,
     const struct standard_uniform *unif = uniform;
     vector3 camera_position = unif->camera_position;
     vector3 light_direction = unif->light_direction;
-    vector3 light_intensity = unif->light_intensity;
+    vector3 illuminance = unif->illuminance;
 
     struct material_parameter material;
     compute_material_parameter(&material, unif, texcoord);
@@ -184,7 +184,7 @@ vector4 standard_fragment_shader(struct shader_context *input,
 
     vector3 fr = specular_lobe(a2, f0, n_dot_h, n_dot_l, n_dot_v, l_dot_h);
     vector3 fd = diffuse_lobe(diffuse_color);
-    vector3 output = vector3_multiply(vector3_add(fr, fd), light_intensity);
+    vector3 output = vector3_multiply(vector3_add(fr, fd), illuminance);
     output = vector3_multiply_scalar(output, n_dot_l);
     return vector3_to_4(output, 1.0f);
 }
