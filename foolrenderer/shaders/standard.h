@@ -29,6 +29,8 @@ struct standard_uniform {
     vector3 light_direction;
     // Directional light illuminance.
     vector3 illuminance;
+    // Suppose the ambient lighting is uniform from all directions.
+    vector3 ambient_luminance;
 
     ////////////////////////////////////////////////////////////////////////////
     //

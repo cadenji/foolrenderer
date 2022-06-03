@@ -154,6 +154,7 @@ vector4 standard_fragment_shader(struct shader_context *input,
     vector3 camera_position = unif->camera_position;
     vector3 light_direction = unif->light_direction;
     vector3 illuminance = unif->illuminance;
+    vector3 ambient_luminance = unif->ambient_luminance;
 
     struct material_parameter material;
     compute_material_parameter(&material, unif, texcoord);
@@ -184,7 +185,14 @@ vector4 standard_fragment_shader(struct shader_context *input,
 
     vector3 fr = specular_lobe(a2, f0, n_dot_h, n_dot_l, n_dot_v, l_dot_h);
     vector3 fd = diffuse_lobe(diffuse_color);
+    // According to the ambient lighting is uniform:
+    // ambient_illuminance = PI * ambient_luminance
+    // fd = diffuse_color / PI
+    // ambient_output = fd * ambient_illuminance
+    //                = diffuse_color * ambient_luminance
+    vector3 ambient_output = vector3_multiply(diffuse_color, ambient_luminance);
     vector3 output = vector3_multiply(vector3_add(fr, fd), illuminance);
     output = vector3_multiply_scalar(output, n_dot_l);
+    output = vector3_add(output, ambient_output);
     return vector3_to_4(output, 1.0f);
 }

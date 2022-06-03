@@ -21,7 +21,7 @@
 #define IMAGE_WIDTH 1024
 #define IMAGE_HEIGHT 1024
 
-const vector3 LIGHT_DIRECTION = {{0.0f, 0.0f, 0.5f}};
+const vector3 LIGHT_DIRECTION = {{1.0f, 1.0f, 0.5f}};
 const vector3 CAMERA_POSITION = {{0.0f, 0.0f, 2.5f}};
 
 // Convert TGA image pixels to texture's pixels or texture's pixels to TGA image
@@ -148,6 +148,7 @@ static void set_shader_uniform(struct standard_uniform *uniform) {
     uniform->camera_position = CAMERA_POSITION;
     uniform->light_direction = vector3_normalize(LIGHT_DIRECTION);
     uniform->illuminance = (vector3){{2.0f, 2.0f, 2.0f}};
+    uniform->ambient_luminance = (vector3){{0.02f, 0.02f, 0.02f}};
     uniform->base_color = VECTOR3_ONE;
     uniform->metallic = 1.0f;
     uniform->roughness = 1.0f;
@@ -201,7 +202,7 @@ static void draw_model(struct mesh *mesh, struct texture *base_color_map,
 }
 
 int main(void) {
-    const char *model_path = "assets/suzanne/suzanne.obj";
+    const char *model_path = "assets/sphere/sphere.obj";
     const char *base_color_map_path = "assets/suzanne/base_color.tga";
     const char *normal_map_path = "assets/suzanne/normal.tga";
     const char *metallic_map_path = "assets/suzanne/metallic.tga";
