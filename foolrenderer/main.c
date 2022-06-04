@@ -9,14 +9,14 @@
 #include <string.h>
 #include <tgafunc.h>
 
-#include "framebuffer.h"
-#include "graphics.h"
+#include "graphics/framebuffer.h"
+#include "graphics/rasterizer.h"
+#include "graphics/texture.h"
 #include "math/math_utility.h"
 #include "math/matrix.h"
 #include "math/vector.h"
 #include "mesh.h"
 #include "shaders/standard.h"
-#include "texture.h"
 
 #define IMAGE_WIDTH 1024
 #define IMAGE_HEIGHT 1024

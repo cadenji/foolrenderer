@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See LICENSE file in the project root for
 // license information.
 
-#include "framebuffer.h"
+#include "graphics/framebuffer.h"
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -11,8 +11,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "graphics/texture.h"
 #include "math/math_utility.h"
-#include "texture.h"
 
 struct framebuffer {
     uint32_t width, height;

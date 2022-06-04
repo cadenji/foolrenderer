@@ -3,8 +3,8 @@
 // Licensed under the MIT License. See LICENSE file in the project root for
 // license information.
 
-#ifndef FOOLRENDERER_COLOR_H_
-#define FOOLRENDERER_COLOR_H_
+#ifndef FOOLRENDERER_GRAPHICS_COLOR_H_
+#define FOOLRENDERER_GRAPHICS_COLOR_H_
 
 #include <math.h>
 
@@ -35,4 +35,4 @@ inline float convert_to_linear_color(float vlaue) {
     return powf(vlaue, GAMMA);
 }
 
-#endif
+#endif  // FOOLRENDERER_GRAPHICS_COLOR_H_

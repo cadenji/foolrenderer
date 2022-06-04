@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See LICENSE file in the project root for
 // license information.
 
-#include "texture.h"
+#include "graphics/texture.h"
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -11,7 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "color.h"
+#include "graphics/color.h"
 #include "math/math_utility.h"
 #include "math/vector.h"
 

@@ -6,10 +6,10 @@
 #ifndef FOOLRENDERER_SHADERS_STANDARD_H_
 #define FOOLRENDERER_SHADERS_STANDARD_H_
 
+#include "graphics/shader_context.h"
+#include "graphics/texture.h"
 #include "math/matrix.h"
 #include "math/vector.h"
-#include "shader_context.h"
-#include "texture.h"
 
 // The standard shader implements a physically based rendering (PBR) material
 // model. And use the specific implementation of the Google Filament project:
@@ -46,7 +46,7 @@ struct standard_uniform {
     struct texture *base_color_map;
     // Whether a surface appears to be dielectric (0.0) or conductor (1.0).
     float metallic;
-    struct texture * metallic_map;
+    struct texture *metallic_map;
     // Perceived smoothness (0.0) or roughness (1.0) of a surface.
     float roughness;
     struct texture *roughness_map;

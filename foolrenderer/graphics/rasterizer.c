@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See LICENSE file in the project root for
 // license information.
 
-#include "graphics.h"
+#include "graphics/rasterizer.h"
 
 #include <float.h>
 #include <math.h>
@@ -11,11 +11,11 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "color.h"
+#include "graphics/color.h"
+#include "graphics/shader_context.h"
+#include "graphics/texture.h"
 #include "math/math_utility.h"
 #include "math/vector.h"
-#include "shader_context.h"
-#include "texture.h"
 
 struct vertex {
     struct shader_context context;

@@ -8,11 +8,11 @@
 #include <math.h>
 #include <stddef.h>
 
+#include "graphics/shader_context.h"
+#include "graphics/texture.h"
 #include "math/math_utility.h"
 #include "math/matrix.h"
 #include "math/vector.h"
-#include "shader_context.h"
-#include "texture.h"
 
 #define TEXCOORD 0
 #define VIEW_SPACE_POSITION 0

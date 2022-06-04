@@ -5,9 +5,9 @@
 
 #include "shaders/shadow_casting.h"
 
+#include "graphics/shader_context.h"
 #include "math/matrix.h"
 #include "math/vector.h"
-#include "shader_context.h"
 
 vector4 shadow_casting_vertex_shader(struct shader_context *output,
                                      const void *uniform,

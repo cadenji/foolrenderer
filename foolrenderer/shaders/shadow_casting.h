@@ -6,9 +6,9 @@
 #ifndef FOOLRENDERER_SHADERS_SHADOW_CASTING_H_
 #define FOOLRENDERER_SHADERS_SHADOW_CASTING_H_
 
+#include "graphics/shader_context.h"
 #include "math/matrix.h"
 #include "math/vector.h"
-#include "shader_context.h"
 
 // The shadow casting shader is used to render shadow maps. For shadow mapping
 // algorithm, refer to:

@@ -3,19 +3,19 @@ cmake_minimum_required(VERSION 3.5)
 project(foolrenderer C)
 
 add_executable(${PROJECT_NAME}
-    foolrenderer/main.c
-    foolrenderer/mesh.c
-    foolrenderer/framebuffer.c
-    foolrenderer/color.c
-    foolrenderer/graphics.c
-    foolrenderer/texture.c
-    foolrenderer/shader_context.c
+    foolrenderer/graphics/color.c
+    foolrenderer/graphics/framebuffer.c
+    foolrenderer/graphics/rasterizer.c
+    foolrenderer/graphics/shader_context.c
+    foolrenderer/graphics/texture.c
     foolrenderer/math/vector.c
     foolrenderer/math/matrix.c
     foolrenderer/math/math_utility.c
     foolrenderer/shaders/basic.c
     foolrenderer/shaders/standard.c
     foolrenderer/shaders/shadow_casting.c
+    foolrenderer/main.c
+    foolrenderer/mesh.c
 )
 
 target_compile_features(${PROJECT_NAME} PUBLIC c_std_11)

@@ -3,13 +3,13 @@
 // Licensed under the MIT License. See LICENSE file in the project root for
 // license information.
 
-#ifndef FOOLRENDERER_FRAMEBUFFER_H_
-#define FOOLRENDERER_FRAMEBUFFER_H_
+#ifndef FOOLRENDERER_GRAPHICS_FRAMEBUFFER_H_
+#define FOOLRENDERER_GRAPHICS_FRAMEBUFFER_H_
 
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "texture.h"
+#include "graphics/texture.h"
 
 enum attachment_type { COLOR_ATTACHMENT, DEPTH_ATTACHMENT };
 
@@ -116,4 +116,4 @@ uint32_t get_framebuffer_height(const struct framebuffer *framebuffer);
 struct texture *get_framebuffer_attachment(struct framebuffer *framebuffer,
                                            enum attachment_type attachment);
 
-#endif  // FOOLRENDERER_FRAMEBUFFER_H_
+#endif  // FOOLRENDERER_GRAPHICS_FRAMEBUFFER_H_

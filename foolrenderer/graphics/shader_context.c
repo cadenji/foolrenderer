@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See LICENSE file in the project root for
 // license information.
 
-#include "shader_context.h"
+#include "graphics/shader_context.h"
 
 #include <stdbool.h>
 #include <stddef.h>

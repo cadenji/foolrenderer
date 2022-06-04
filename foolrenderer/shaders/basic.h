@@ -6,10 +6,10 @@
 #ifndef FOOLRENDERER_SHADERS_BASIC_H_
 #define FOOLRENDERER_SHADERS_BASIC_H_
 
+#include "graphics/shader_context.h"
+#include "graphics/texture.h"
 #include "math/matrix.h"
 #include "math/vector.h"
-#include "shader_context.h"
-#include "texture.h"
 
 // The basic shader implements Blinn-Phong reflection model with Phong shading.
 // References:

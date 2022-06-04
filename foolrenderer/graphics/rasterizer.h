@@ -3,15 +3,15 @@
 // Licensed under the MIT License. See LICENSE file in the project root for
 // license information.
 
-#ifndef FOOLRENDERER_GRAPHICS_H_
-#define FOOLRENDERER_GRAPHICS_H_
+#ifndef FOOLRENDERER_GRAPHICS_RASTERIZER_H_
+#define FOOLRENDERER_GRAPHICS_RASTERIZER_H_
 
 #include <stdint.h>
 
-#include "framebuffer.h"
+#include "graphics/framebuffer.h"
+#include "graphics/shader_context.h"
+#include "graphics/texture.h"
 #include "math/vector.h"
-#include "shader_context.h"
-#include "texture.h"
 
 ///
 /// \brief Pointer to vertex shader.
@@ -95,4 +95,4 @@ void set_fragment_shader(fragment_shader shader);
 void draw_triangle(struct framebuffer *framebuffer, const void *uniform,
                    const void *const vertex_attributes[]);
 
-#endif  // FOOLRENDERER_GRAPHICS_H_
+#endif  // FOOLRENDERER_GRAPHICS_RASTERIZER_H_

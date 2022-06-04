@@ -3,8 +3,8 @@
 // Licensed under the MIT License. See LICENSE file in the project root for
 // license information.
 
-#ifndef FOOLRENDERER_TEXTURE_H_
-#define FOOLRENDERER_TEXTURE_H_
+#ifndef FOOLRENDERER_GRAPHICS_TEXTURE_H_
+#define FOOLRENDERER_GRAPHICS_TEXTURE_H_
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -146,4 +146,4 @@ uint32_t get_texture_height(const struct texture *texture);
 ///
 vector4 texture_sample(const struct texture *texture, vector2 texcoord);
 
-#endif  // FOOLRENDERER_TEXTURE_H_
+#endif  // FOOLRENDERER_GRAPHICS_TEXTURE_H_

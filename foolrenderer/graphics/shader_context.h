@@ -3,8 +3,8 @@
 // Licensed under the MIT License. See LICENSE file in the project root for
 // license information.
 
-#ifndef FOOLRENDERER_SHADER_CONTEXT_H_
-#define FOOLRENDERER_SHADER_CONTEXT_H_
+#ifndef FOOLRENDERER_GRAPHICS_SHADER_CONTEXT_H_
+#define FOOLRENDERER_GRAPHICS_SHADER_CONTEXT_H_
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -116,4 +116,4 @@ vector3 *shader_context_vector3(struct shader_context *context, int8_t index);
 ///
 vector4 *shader_context_vector4(struct shader_context *context, int8_t index);
 
-#endif  // FOOLRENDERER_SHADER_CONTEXT_H_
+#endif  // FOOLRENDERER_GRAPHICS_SHADER_CONTEXT_H_
