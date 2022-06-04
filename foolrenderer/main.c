@@ -15,8 +15,8 @@
 #include "math/math_utility.h"
 #include "math/matrix.h"
 #include "math/vector.h"
-#include "mesh.h"
 #include "shaders/standard.h"
+#include "utilities/mesh.h"
 
 #define IMAGE_WIDTH 1024
 #define IMAGE_HEIGHT 1024

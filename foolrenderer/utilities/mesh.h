@@ -3,8 +3,8 @@
 // Licensed under the MIT License. See LICENSE file in the project root for
 // license information.
 
-#ifndef FOOLRENDERER_MESH_H_
-#define FOOLRENDERER_MESH_H_
+#ifndef FOOLRENDERER_UTILITIES_MESH_H_
+#define FOOLRENDERER_UTILITIES_MESH_H_
 
 #include <stdint.h>
 
@@ -137,4 +137,4 @@ void get_mesh_normal(vector3 *normal, const struct mesh *mesh,
 void get_mesh_tangent(vector4 *tangent, const struct mesh *mesh,
                       uint32_t triangle_index, uint32_t vertex_index);
 
-#endif  // FOOLRENDERER_MESH_H_
+#endif  // FOOLRENDERER_UTILITIES_MESH_H_

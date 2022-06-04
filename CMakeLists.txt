@@ -14,8 +14,8 @@ add_executable(${PROJECT_NAME}
     foolrenderer/shaders/basic.c
     foolrenderer/shaders/standard.c
     foolrenderer/shaders/shadow_casting.c
+    foolrenderer/utilities/mesh.c
     foolrenderer/main.c
-    foolrenderer/mesh.c
 )
 
 target_compile_features(${PROJECT_NAME} PUBLIC c_std_11)

@@ -3,7 +3,7 @@
 // Licensed under the MIT License. See LICENSE file in the project root for
 // license information.
 
-#include "mesh.h"
+#include "utilities/mesh.h"
 
 #include <fast_obj.h>
 #include <stdbool.h>
