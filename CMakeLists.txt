@@ -14,6 +14,7 @@ add_executable(${PROJECT_NAME}
     foolrenderer/shaders/basic.c
     foolrenderer/shaders/standard.c
     foolrenderer/shaders/shadow_casting.c
+    foolrenderer/utilities/image.c
     foolrenderer/utilities/mesh.c
     foolrenderer/main.c
 )
