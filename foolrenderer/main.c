@@ -92,10 +92,10 @@ static void draw_model(struct mesh *mesh, struct texture *base_color_map,
 
 int main(void) {
     const char *model_path = "assets/sphere/sphere.obj";
-    const char *base_color_map_path = "assets/suzanne/base_color.tga";
-    const char *normal_map_path = "assets/suzanne/normal.tga";
-    const char *metallic_map_path = "assets/suzanne/metallic.tga";
-    const char *roughness_map_path = "assets/suzanne/roughness.tga";
+    const char *base_color_map_path = "assets/rusted_iron/base_color.tga";
+    const char *normal_map_path = "assets/rusted_iron/normal.tga";
+    const char *metallic_map_path = "assets/rusted_iron/metallic.tga";
+    const char *roughness_map_path = "assets/rusted_iron/roughness.tga";
 
     // Load model data.
     struct mesh *mesh;
