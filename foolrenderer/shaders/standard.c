@@ -18,6 +18,7 @@
 #define WORLD_SPACE_NORMAL 1
 #define WORLD_SPACE_TANGENT 2
 #define WORLD_SPACE_BITANGENT 3
+#define LIGHT_SPACE_POSITION 4
 
 struct material_parameter {
     vector3 normal;  // In tangent space.
@@ -26,6 +27,17 @@ struct material_parameter {
     float roughness;
     float reflectance;
 };
+
+static inline float shadow(struct shader_context *input,
+                           const struct standard_uniform *uniform) {
+    vector3 position = *shader_context_vector3(input, LIGHT_SPACE_POSITION);
+    float current_depth = position.z;
+    float bias = 0.005f;  // Slove shadow acne.
+    float closest_depth =
+        texture_sample(uniform->shadow_map, vector3_to_2(position)).r;
+    float visibility = current_depth - bias > closest_depth ? 0.0f : 1.0f;
+    return visibility;
+}
 
 // Process user input of material properties into a form that is convenient for
 // the shader to use.
@@ -143,6 +155,15 @@ vector4 standard_vertex_shader(struct shader_context *output,
     *out_bitangent = vector3_multiply_scalar(
         vector3_cross(*out_normal, *out_tangent), attr->tangent.w);
 
+    vector4 light_space_position =
+        matrix4x4_multiply_vector4(unif->world2light, world_position);
+    vector3 *out_light_space_position =
+        shader_context_vector3(output, LIGHT_SPACE_POSITION);
+    // When calculating directional light shadows, the view2clip matrix
+    // contained in local2light is an orthogonal matrix, the w component is
+    // always equal to 1.0f, so no need for homogeneous division.
+    *out_light_space_position = vector4_to_3(light_space_position);
+
     return matrix4x4_multiply_vector4(unif->world2clip, world_position);
 }
 
@@ -183,6 +204,7 @@ vector4 standard_fragment_shader(struct shader_context *input,
     float n_dot_h = float_max(vector3_dot(normal, halfway), 0.0f);
     float l_dot_h = float_max(vector3_dot(light_direction, halfway), 0.0f);
 
+    float visibility = shadow(input, unif);
     vector3 fr = specular_lobe(a2, f0, n_dot_h, n_dot_l, n_dot_v, l_dot_h);
     vector3 fd = diffuse_lobe(diffuse_color);
     // According to the ambient lighting is uniform:
@@ -193,6 +215,7 @@ vector4 standard_fragment_shader(struct shader_context *input,
     vector3 ambient_output = vector3_multiply(diffuse_color, ambient_luminance);
     vector3 output = vector3_multiply(vector3_add(fr, fd), illuminance);
     output = vector3_multiply_scalar(output, n_dot_l);
+    output = vector3_multiply_scalar(output, visibility);
     output = vector3_add(output, ambient_output);
     return vector3_to_4(output, 1.0f);
 }

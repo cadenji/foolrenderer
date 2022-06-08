@@ -29,6 +29,11 @@ struct standard_uniform {
     vector3 light_direction;
     // Directional light illuminance.
     vector3 illuminance;
+    // Transform vertex positions from world space to directional light‘s light
+    // space.
+    matrix4x4 world2light;
+    // Directional light shadow map
+    struct texture *shadow_map;
     // Suppose the ambient lighting is uniform from all directions.
     vector3 ambient_luminance;
 
