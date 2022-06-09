@@ -69,11 +69,26 @@ bool attach_texture_to_framebuffer(struct framebuffer *framebuffer,
                                    struct texture *texture);
 
 ///
-/// \brief Uses default values to clear all buffers in the framebuffer.
+/// \brief Sets clear values for the color buffers.
 ///
-/// The default value for clearing the color buffer is 0x0, and the default
-/// value for clearing the depth buffer is 1.0f. If framebuffer is a null
-/// pointer, the function does nothing.
+/// Sets the red, green, bule and alpha values used by clear_framebuffer() to
+/// clear the color buffers. The set values are clamped to the range [0,1] and
+/// the initial values are all 0.
+///
+/// \param red The R component of the color value.
+/// \param green The G component of the color value.
+/// \param blue The B component of the color value.
+/// \param alpha The A component of the color value.
+///
+void set_clear_color(float red, float green, float blue, float alpha);
+
+///
+/// \brief Uses preset values to clear all buffers in the framebuffer.
+///
+/// Each pixel of the color buffer will be cleared using the value previously
+/// set via the set_clear_color() function. For depth buffers, a fixed value of
+/// 1 will be used to clear each pixel. If framebuffer is a null pointer, the
+/// function does nothing.
 ///
 /// \param framebuffer Pointer to the framebuffer to clear.
 ///

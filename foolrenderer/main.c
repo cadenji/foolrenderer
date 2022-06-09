@@ -101,6 +101,7 @@ static void render_model(const struct model *model) {
     set_viewport(0, 0, IMAGE_WIDTH, IMAGE_HEIGHT);
     set_vertex_shader(standard_vertex_shader);
     set_fragment_shader(standard_fragment_shader);
+    set_clear_color(0.49f, 0.33f, 0.41f, 1.0f);
     clear_framebuffer(framebuffer);
 
     struct standard_uniform uniform;

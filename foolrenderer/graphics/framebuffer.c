@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "graphics/color.h"
 #include "graphics/texture.h"
 #include "math/math_utility.h"
 
@@ -19,6 +20,8 @@ struct framebuffer {
     struct texture *color_buffer;
     struct texture *depth_buffer;
 };
+
+static uint8_t clear_color[4] = {0};
 
 struct framebuffer *create_framebuffer(void) {
     struct framebuffer *framebuffer;
@@ -98,6 +101,13 @@ bool attach_texture_to_framebuffer(struct framebuffer *framebuffer,
     return result;
 }
 
+void set_clear_color(float red, float green, float blue, float alpha) {
+    clear_color[0] = float_to_uint8(float_clamp01(red));
+    clear_color[1] = float_to_uint8(float_clamp01(green));
+    clear_color[2] = float_to_uint8(float_clamp01(blue));
+    clear_color[3] = float_to_uint8(float_clamp01(alpha));
+}
+
 void clear_framebuffer(struct framebuffer *framebuffer) {
     if (framebuffer == NULL) {
         return;
@@ -107,8 +117,14 @@ void clear_framebuffer(struct framebuffer *framebuffer) {
     // Clear color buffer.
     buffer = framebuffer->color_buffer;
     if (buffer != NULL) {
-        void *pixels = get_texture_pixels(buffer);
-        memset(pixels, 0x0, pixel_count * 4);
+        uint8_t *pixels = get_texture_pixels(buffer);
+        for (size_t i = 0; i < pixel_count; i++) {
+            uint8_t *pixel = pixels + i * 4;
+            pixel[0] = clear_color[0];
+            pixel[1] = clear_color[1];
+            pixel[2] = clear_color[2];
+            pixel[3] = clear_color[3];
+        }
     }
     // Clear depth buffer.
     buffer = framebuffer->depth_buffer;
