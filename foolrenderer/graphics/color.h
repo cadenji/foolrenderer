@@ -7,8 +7,13 @@
 #define FOOLRENDERER_GRAPHICS_COLOR_H_
 
 #include <math.h>
+#include <stdint.h>
 
 #define GAMMA (2.2f)
+
+inline uint8_t float_to_uint8(float value) { return value * 0xFF; }
+
+inline float uint8_to_float(uint8_t value) { return value / 255.0f; }
 
 ///
 /// \brief Converts a linear color component to sRGB space.

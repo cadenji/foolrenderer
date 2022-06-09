@@ -43,8 +43,4 @@ inline float float_clamp01(float n) { return float_clamp(n, 0.0f, 1.0f); }
 
 inline float float_lerp(float a, float b, float t) { return a + t * (b - a); }
 
-inline uint8_t float_to_uint8(float value) { return value * 0xFF; }
-
-inline float uint8_to_float(uint8_t value) { return value / 255.0f; }
-
 #endif  // FOOLRENDERER_MATH_MATH_UTILITY_H_

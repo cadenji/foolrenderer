@@ -32,7 +32,3 @@ extern float float_clamp(float n, float min, float max);
 extern float float_clamp01(float n);
 
 extern float float_lerp(float a, float b, float t);
-
-extern uint8_t float_to_uint8(float value);
-
-extern float uint8_to_float(uint8_t value);
