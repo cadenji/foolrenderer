@@ -37,11 +37,9 @@ file(COPY assets DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
 # Add external libraries
 add_subdirectory(external/tgafunc)
-add_subdirectory(external/cwalk)
 add_subdirectory(external/fast_obj)
 
 target_link_libraries(${PROJECT_NAME}
     tgafunc
-    cwalk
     fast_obj_lib
 )
