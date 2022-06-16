@@ -38,7 +38,8 @@ $ cmake --build .
 
 ## How to Learn Computer Graphics
 
-Here are some very useful resources that you can also use as a learning roadmap:
+Here are some useful literature and videos for self-study computer graphics.
+I've also added links to literature on specific problems to the source code.
 
 ### Getting Started
 
