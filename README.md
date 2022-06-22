@@ -1,10 +1,16 @@
 # foolrenderer
 
-![teaser image](teaser.gif)
+![teaser image](docs/teaser.gif)
 
-**foolrenderer** is a rasterization based software renderer implemented from
-scratch. Its main features include programmable rendering pipeline, physically
-based materials, etc. Hope it helps someone who is learning computer graphics.
+**foolrenderer** is a tiny software renderer implemented from scratch without
+the use of graphics API, used to understand how GPUs work. The primary goal for
+**foolrenderer** is to demonstrate some real-time rendering techniques for video
+games.
+
+- **Small.** Only a few thousand lines of code, no complex dependencies.
+- **Simple.** Focus on the fundamentals of rendering.
+- **Readable.** A quarter of the source code is comments, and every mathematical
+calculation has a formula explanation.
 
 ## Prerequisites
 
@@ -35,6 +41,16 @@ $ cd build
 $ cmake ..
 $ cmake --build .
 ```
+
+## Features Showcase
+
+![rasterization](docs/rasterization.jpg)
+
+![draw model](docs/draw_model.jpg)
+
+![gamma correction](docs/gamma_correction.jpg)
+
+![pbr materials](docs/pbr_materials.jpg)
 
 ## How to Learn Computer Graphics
 
