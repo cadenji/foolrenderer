@@ -4,7 +4,7 @@
 
 **foolrenderer** is a tiny software renderer implemented from scratch without
 the use of graphics API, used to understand how GPUs work. The primary goal for
-**foolrenderer** is to demonstrate some real-time rendering techniques for video
+foolrenderer is to demonstrate some real-time rendering techniques for video
 games.
 
 - **Small.** Only a few thousand lines of code, no complex dependencies.
@@ -33,14 +33,32 @@ by running:
 $ xcode-select --install
 ```
 
-## Build
+## Build and Run
+
+The following shows how to build and run foolrenderer from the command line.
+
+> Some editors and IDEs (like VSCode, CLion, Visual Studio) support editing,
+> building and debugging CMake projects. Please refer to related documents for
+> usage.
+
+### Build
+
+First, create a `build` folder in the project root directory. Then use CMake
+commands to build the project:
 
 ```console
+$ cd foolrenderer
 $ mkdir build
 $ cd build
 $ cmake ..
 $ cmake --build .
 ```
+
+### Run
+
+If the build is successful, you can run the generated executable in the `build`
+directory. foolrenderer will store the rendering result in a TGA format
+image.
 
 ## Features Showcase
 
@@ -54,8 +72,8 @@ $ cmake --build .
 
 ## How to Learn Computer Graphics
 
-Here are some useful literature and videos for self-study computer graphics.
-I've also added links to literature on specific problems to the source code.
+Here are some useful tutorials for self-study computer graphics. You can also
+find links to the corresponding literature at each algorithm in the source code.
 
 ### Getting Started
 
