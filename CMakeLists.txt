@@ -42,4 +42,5 @@ add_subdirectory(external/fast_obj)
 target_link_libraries(${PROJECT_NAME}
     tgafunc
     fast_obj_lib
+    m
 )
