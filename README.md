@@ -12,7 +12,7 @@ games.
 - **Readable.** A quarter of the source code is comments, and every mathematical
 calculation has a formula explanation.
 
-## Prerequisites
+## ⛳ Prerequisites
 
 To build foolrenderer, you must first install the following tools:
 
@@ -33,7 +33,7 @@ by running:
 $ xcode-select --install
 ```
 
-## Build and Run
+## 🚀 Build and Run
 
 The following shows how to build and run foolrenderer from the command line.
 
@@ -60,7 +60,7 @@ If the build is successful, you can run the generated executable in the `build`
 directory. foolrenderer will store the rendering result in a TGA format
 image.
 
-## Features Showcase
+## 🏆 Features Showcase
 
 ![rasterization](docs/rasterization.jpg)
 
@@ -70,7 +70,7 @@ image.
 
 ![pbr materials](docs/pbr_materials.jpg)
 
-## How to Learn Computer Graphics
+## 🤔 How to Learn Computer Graphics
 
 Here are some useful tutorials for self-study computer graphics. You can also
 find links to the corresponding literature at each algorithm in the source code.
@@ -113,7 +113,7 @@ The EA DICE team detailed the PBR implementation of the Frostbite engine in this
 course. Hope the *Battlefield 2042* update goes well.
 - [Romain Guy & Mathias Agopian 2018, Physically Based Rendering in Filament](https://google.github.io/filament/Filament.html)
 
-## License
+## ❤️ License
 
 Copyright (c) Caden Ji. All rights reserved.
 
