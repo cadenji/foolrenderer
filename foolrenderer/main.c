@@ -3,6 +3,7 @@
 // Licensed under the MIT License. See LICENSE file in the project root for
 // license information.
 
+#include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -148,7 +149,6 @@ static void render_model(const struct model *model) {
         }
         draw_triangle(framebuffer, &uniform, attribute_ptrs);
     }
-    save_image(color_buffer, "output.tga");
 }
 
 int main(void) {
@@ -182,6 +182,7 @@ int main(void) {
     initialize_rendering();
     render_shadow_map(&model);
     render_model(&model);
+    save_image(color_buffer, "output.tga", false);
     end_rendering();
 
     destroy_mesh(model.mesh);

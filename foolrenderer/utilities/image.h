@@ -29,10 +29,14 @@ struct texture *load_image(const char *filename, bool is_srgb_encoding);
 /// Only supports textures in the format TEXTURE_FORMAT_RGB8,
 /// TEXTURE_FORMAT_SRGB8, TEXTURE_FORMAT_SRGB8_A8 and TEXTURE_FORMAT_RGBA8.
 ///
+/// When saving the alpha channel, if the texture does not contain alpha channel
+/// data, the alpha channel in the saved image is all set to 0xFF.
+///
 /// \param texture Pointer to the texture to save.
 /// \param filename The file to save to.
+/// \param alpha Whether to save the alpha channel.
 /// \return Returns true on success, false on failure.
 ///
-bool save_image(struct texture *texture, const char *filename);
+bool save_image(struct texture *texture, const char *filename, bool alpha);
 
 #endif  // FOOLRENDERER_UTILITIES_IMAGE_H_

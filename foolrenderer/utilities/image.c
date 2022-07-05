@@ -89,12 +89,16 @@ struct texture *load_image(const char *filename, bool is_srgb_encoding) {
     return texture;
 }
 
-bool save_image(struct texture *texture, const char *filename) {
+bool save_image(struct texture *texture, const char *filename, bool alpha) {
+    size_t texture_pixel_size;
     enum texture_format texture_format = get_texture_format(texture);
-    if (texture_format != TEXTURE_FORMAT_SRGB8 &&
-        texture_format != TEXTURE_FORMAT_RGB8 &&
-        texture_format != TEXTURE_FORMAT_SRGB8_A8 &&
-        texture_format != TEXTURE_FORMAT_RGBA8) {
+    if (texture_format == TEXTURE_FORMAT_RGB8 ||
+        texture_format == TEXTURE_FORMAT_SRGB8) {
+        texture_pixel_size = 3;
+    } else if (texture_format == TEXTURE_FORMAT_RGBA8 ||
+               texture_format == TEXTURE_FORMAT_SRGB8_A8) {
+        texture_pixel_size = 4;
+    } else {
         return false;
     }
 
@@ -102,20 +106,36 @@ bool save_image(struct texture *texture, const char *filename) {
     uint32_t texture_height = get_texture_height(texture);
     const uint8_t *texture_data = get_texture_pixels(texture);
 
+    size_t image_pixel_size;
+    enum tga_pixel_format image_format;
+    if (alpha) {
+        image_pixel_size = 4;
+        image_format = TGA_PIXEL_ARGB32;
+    } else {
+        image_pixel_size = 3;
+        image_format = TGA_PIXEL_RGB24;
+    }
     uint8_t *image_data;
     tga_info *image_info;
     tga_create(&image_data, &image_info, texture_width, texture_height,
-               TGA_PIXEL_RGB24);
+               image_format);
 
     // Copy the color buffer data to the TGA image.
     for (uint32_t y = 0; y < texture_width; y++) {
         for (uint32_t x = 0; x < texture_height; x++) {
             const uint8_t *texture_pixel =
-                texture_data + (y * texture_width + x) * 4;
+                texture_data + (y * texture_width + x) * texture_pixel_size;
             uint8_t *image_pixel = tga_get_pixel(image_data, image_info, x, y);
-            image_pixel[0] = texture_pixel[0];
-            image_pixel[1] = texture_pixel[1];
-            image_pixel[2] = texture_pixel[2];
+            for (size_t i = 0; i < image_pixel_size; i++) {
+                if (i == texture_pixel_size) {
+                    // That is, i == 3 && texture_pixel_size == 3.
+                    // The texture has no alpha channel, the alpha channel of
+                    // image pixels is set to 0xFF.
+                    image_pixel[i] = 0xFF;
+                } else {
+                    image_pixel[i] = texture_pixel[i];
+                }
+            }
             // Convert the pixel components to the desired arrangement order of
             // the TGA image.
             pixel_endian_inversion(image_pixel);
