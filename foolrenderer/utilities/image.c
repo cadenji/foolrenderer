@@ -121,8 +121,8 @@ bool save_image(struct texture *texture, const char *filename, bool alpha) {
                image_format);
 
     // Copy the color buffer data to the TGA image.
-    for (uint32_t y = 0; y < texture_width; y++) {
-        for (uint32_t x = 0; x < texture_height; x++) {
+    for (uint32_t y = 0; y < texture_height; y++) {
+        for (uint32_t x = 0; x < texture_width; x++) {
             const uint8_t *texture_pixel =
                 texture_data + (y * texture_width + x) * texture_pixel_size;
             uint8_t *image_pixel = tga_get_pixel(image_data, image_info, x, y);
