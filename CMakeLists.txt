@@ -35,12 +35,19 @@ target_include_directories(${PROJECT_NAME}
 # Copy the assets to binary folder.
 file(COPY assets DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 
+# Check if some libraries exist and link them if they exist.
+include(CheckLibraryExists)
+CHECK_LIBRARY_EXISTS(m pow "" HAVE_LIB_M)
+if(HAVE_LIB_M)
+    set(EXTRA_LIBS ${EXTRA_LIBS} m)
+endif()
+
 # Add external libraries
 add_subdirectory(external/tgafunc)
 add_subdirectory(external/fast_obj)
 
 target_link_libraries(${PROJECT_NAME}
+    ${EXTRA_LIBS}
     tgafunc
     fast_obj_lib
-    m
 )
