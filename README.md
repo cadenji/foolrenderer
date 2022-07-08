@@ -18,13 +18,18 @@ To build foolrenderer, you must first install the following tools:
 
 ### Windows
 
-- Visual Studio 2019 (or more recent)
-- CMake 3.5 (or more recent)
+- Visual Studio 2019 version 16.2 (or more recent)
+- CMake 3.21 (or more recent)
+
+Make sure your Visual Studio has Clang compiler tools installed. If you don't
+already have the tools, you can install them by opening the Visual Studio
+Installer and choosing **C++ Clang tools for Windows** under
+**Desktop development with C++** optional components.
 
 ### macOS
 
 - Xcode 12.3 (or more recent)
-- CMake 3.5 (or more recent)
+- CMake 3.21 (or more recent)
 
 After installing Xcode you need to make sure the command line tools are set up
 by running:

@@ -1,4 +1,9 @@
-cmake_minimum_required(VERSION 3.8)
+cmake_minimum_required(VERSION 3.21)
+
+# When the generator is Visual Studio, configure ClangCL toolset.
+if ("${CMAKE_GENERATOR}" MATCHES "Visual Studio ([0-9]+)")
+    set(CMAKE_GENERATOR_TOOLSET "ClangCL")
+endif()
 
 project(foolrenderer C)
 
@@ -32,9 +37,6 @@ target_include_directories(${PROJECT_NAME}
     PRIVATE ${PROJECT_SOURCE_DIR}/foolrenderer
 )
 
-# Copy the assets to binary folder.
-file(COPY assets DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
-
 # Check if some libraries exist and link them if they exist.
 include(CheckLibraryExists)
 CHECK_LIBRARY_EXISTS(m pow "" HAVE_LIB_M)
@@ -50,4 +52,10 @@ target_link_libraries(${PROJECT_NAME}
     ${EXTRA_LIBS}
     tgafunc
     fast_obj_lib
+)
+
+# Copy assets into build directory after successful build.
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+    ${CMAKE_SOURCE_DIR}/assets/ $<TARGET_FILE_DIR:${PROJECT_NAME}>/assets/
 )
