@@ -414,7 +414,7 @@ inline vector4 vector4_lerp(vector4 a, vector4 b, float t) {
     float x = float_lerp(a.x, b.x, t);
     float y = float_lerp(a.y, b.y, t);
     float z = float_lerp(a.z, b.z, t);
-    float w = float_lerp(a.z, b.z, t);
+    float w = float_lerp(a.w, b.w, t);
     return (vector4){{x, y, z, w}};
 }
 
